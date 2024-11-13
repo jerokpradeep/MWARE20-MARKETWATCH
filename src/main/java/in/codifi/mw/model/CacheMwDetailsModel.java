@@ -3,6 +3,8 @@ package in.codifi.mw.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -34,4 +36,8 @@ public class CacheMwDetailsModel implements Serializable {
 	public String symbol;
 	public String formattedInsName;
 	private String weekTag;
+
+	// New fields
+	public Map<String, String> badge;
+	public List<String> screeners;
 }

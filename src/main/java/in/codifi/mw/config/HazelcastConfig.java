@@ -11,7 +11,7 @@ import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
 
-import in.codifi.mw.model.ContractMasterModel;
+import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.model.PnlLotModel;
 import in.codifi.mw.model.VendorDTO;
 import lombok.Getter;

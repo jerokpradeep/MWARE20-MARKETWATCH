@@ -95,5 +95,8 @@ public class AppConstants {
 	public static final String MODULE_MW = "Marketwatch";
 	public static final String SOURCE_MOB = "MOB";
 	public static final String PNL_LOT = "PNL_LOT";
+	
+	public static final String MW_NAME= "Error : 'MwName' characters should be less than or equal to 40 characters";
+	
 
 }

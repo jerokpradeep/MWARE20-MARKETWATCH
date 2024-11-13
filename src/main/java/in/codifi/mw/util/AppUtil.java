@@ -5,10 +5,10 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.config.HazelcastConfig;
 import in.codifi.mw.controller.DefaultRestController;
 import in.codifi.mw.model.ClinetInfoModel;
-import in.codifi.mw.model.ContractMasterModel;
 import in.codifi.mw.model.PnlLotModel;
 import io.quarkus.logging.Log;
 

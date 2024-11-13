@@ -16,8 +16,24 @@ import in.codifi.mw.entity.PredefinedMwEntity;
 public class MwCacheController {
 	
 	private static Map<String, List<JSONObject>> mwListByUserId = new ConcurrentHashMap<>();
+	private static Map<String, List<JSONObject>> mwListUserId = new ConcurrentHashMap<>();
 	private static Map<String, List<PredefinedMwEntity>> predefinedMwList = new ConcurrentHashMap<>();
 	private static Map<String, List<PredefinedMwEntity>> masterPredefinedMwList = new ConcurrentHashMap<>();
+
+	
+	/**
+	 * @return the mwListUserId
+	 */
+	public static Map<String, List<JSONObject>> getMwListUserId() {
+		return mwListUserId;
+	}
+
+	/**
+	 * @param mwListUserId the mwListUserId to set
+	 */
+	public static void setMwListUserId(Map<String, List<JSONObject>> mwListUserId) {
+		MwCacheController.mwListUserId = mwListUserId;
+	}
 
 	public static Map<String, List<JSONObject>> getMwListByUserId() {
 		return mwListByUserId;

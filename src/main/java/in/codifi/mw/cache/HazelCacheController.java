@@ -3,15 +3,22 @@ package in.codifi.mw.cache;
 import java.util.List;
 import java.util.Map;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
 
-import in.codifi.mw.model.ContractMasterModel;
+import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.model.PreferenceModel;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
+@ApplicationScoped
 public class HazelCacheController {
 
 	public static HazelCacheController HazelCacheController = null;
