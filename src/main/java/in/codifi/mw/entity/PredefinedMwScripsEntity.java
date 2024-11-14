@@ -5,16 +5,15 @@ package in.codifi.mw.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import org.hibernate.annotations.UpdateTimestamp;
+import javax.persistence.Transient;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
@@ -36,7 +35,7 @@ public class PredefinedMwScripsEntity implements Serializable  {
 
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	@Column(name = "MW_ID")
-	private int mwId;
+	private Long mwId;
 
 	@Column(name = "TOKEN")
 	private String token;
@@ -44,33 +43,48 @@ public class PredefinedMwScripsEntity implements Serializable  {
 	@Column(name = "EXCH")
 	private String exchange;
 
-	@Column(name = "EXCH_SEG")
-	private String segment;
+	 // Transient fields for extended data
+    @Transient
+    private String symbol;
+    @Transient
+    private String tradingSymbol;
+    @Transient
+    private String formattedInsName;
+    @Transient
+    private String segment;
+    @Transient
+    private String pdc;
+    @Transient
+    private Date expiry;
+    @Transient
+    private String weekTag;
+//	@Column(name = "EXCH_SEG")
+//	private String segment;
 
-	@Column(name = "SYMBOL")
-	private String symbol;
-
-	@Column(name = "TRADING_SYMBOL")
-	private String tradingSymbol;
-
-	@Column(name = "FORMATTED_INS_NAME")
-	private String formattedInsName;
-
-	@Column(name = "PDC")
-	private String pdc;
-
-	@Column(name = "LOT_SIZE")
-	private String lotSize;
-
-	@Column(name = "TICK_SIZE")
-	private String tickSize;
-
-	@JsonFormat(pattern = "yyyy-MM-dd", timezone = "IST")
-	@Column(name = "EXPIRY_DATE")
-	private Date expiry;
-
-	@Column(name = "WEEK_TAG")
-	private String weekTag;
+//	@Column(name = "SYMBOL")
+//	private String symbol;
+//
+//	@Column(name = "TRADING_SYMBOL")
+//	private String tradingSymbol;
+//
+//	@Column(name = "FORMATTED_INS_NAME")
+//	private String formattedInsName;
+//
+//	@Column(name = "PDC")
+//	private String pdc;
+//
+//	@Column(name = "LOT_SIZE")
+//	private int lotSize;
+//
+//	@Column(name = "TICK_SIZE")
+//	private double tickSize;
+//
+//	@JsonFormat(pattern = "yyyy-MM-dd", timezone = "IST")
+//	@Column(name = "EXPIRY_DATE")
+//	private Date expiry;
+//
+//	@Column(name = "WEEK_TAG")
+//	private String weekTag;
 
 	@Column(name = "SORTING_ORDER")
 	private int sortOrder;

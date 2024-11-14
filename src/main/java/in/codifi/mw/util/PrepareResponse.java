@@ -13,23 +13,6 @@ import in.codifi.mw.model.MWResponseModel;
 import in.codifi.mw.model.ResponseModel;
 import javax.ws.rs.core.Response.Status;
 
-
-/**
- * @author Vicky
- *
- */
-/**
- * @author Vicky
- *
- */
-/**
- * @author Vicky
- *
- */
-/**
- * @author Vicky
- *
- */
 @ApplicationScoped
 public class PrepareResponse {
 
@@ -112,5 +95,47 @@ public class PrepareResponse {
 		responseObject.setMessage(AppConstants.SUCCESS_STATUS);
 		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
+
+	public RestResponse<ResponseModel> prepareFailedResponseObj(String message, String status) {
+	    // Create the inner result object
+	    ResponseModel result = new ResponseModel();
+	    result.setStatus(status);
+	    result.setMessage(message);
+
+	    // Create the main response object
+	    ResponseModel responseObject = new ResponseModel();
+	    responseObject.setStatus(" NOT Ok");
+	    responseObject.setMessage("Failed");
+	    responseObject.setResult(result);
+
+	    return RestResponse.ResponseBuilder
+	        .create(Status.OK, responseObject)
+	        .build();
+	}
+	public RestResponse<ResponseModel> prepareMWSuccessResponseObject2(String message, String status) {
+	    // Create the inner result object
+	    ResponseModel result = new ResponseModel();
+	    result.setStatus(status);
+	    result.setMessage(message);
+
+	    // Create the main response object
+	    ResponseModel responseObject = new ResponseModel();
+	    responseObject.setStatus("Ok");
+	    responseObject.setMessage("Success");
+	    responseObject.setResult(result);
+
+	    return RestResponse.ResponseBuilder
+	        .create(Status.OK, responseObject)
+	        .build();
+	}
+	public RestResponse<ResponseModel> prepareSuccessResponseObject(Object resultData , String status) {
+		ResponseModel responseObject = new ResponseModel();
+		responseObject.setResult(getResult(resultData));
+		responseObject.setStatus("");
+		responseObject.setMessage(ErrorMessageConstants.SUCCESS_STATUS);
+		responseObject.setStatus(status);
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
+	}
+
 
 }
