@@ -518,9 +518,21 @@ public class MarketWatchService implements IMarketWatchService {
 					fResult.setSortOrder(result.getSortingOrder());
 					fResult.setPdc(masterData.getPdc());
 					fResult.setWeekTag(masterData.getWeekTag());
-					fResult.badge = Map.of("event", "", "bnpl", "", "ideas", "", "holdingqty", "");
-					fResult.screeners = List.of("topGainer", "52wk High", "Volume shocker");
+					
+//					fResult.badge = Map.of("event", "", "bnpl", "", "ideas", "", "holdingqty", "");
+//					fResult.screeners = List.of("topGainer", "52wk High", "Volume shocker");
 
+					  // Prepare badge and screeners
+	                Map<String, String> badge = Map.of("event", "", "bnpl", "", "ideas", "", "holdingqty", "");
+	                List<String> screeners = List.of("topGainer", "52wk High", "Volume shocker");
+
+	                // Set badge and screeners only if they are non-empty
+	                if (!badge.isEmpty() && badge.values().stream().anyMatch(value -> !value.isEmpty())) {
+	                    fResult.setBadge(badge);
+	                }
+	                if (!screeners.isEmpty() && screeners.stream().anyMatch(s -> !s.isEmpty())) {
+	                    fResult.setScreeners(screeners);
+	                }
 					response.add(fResult);
 				}
 			}
