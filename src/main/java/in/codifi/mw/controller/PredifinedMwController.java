@@ -70,7 +70,8 @@ public class PredifinedMwController implements PredefinedMwControllerspec {
 	 * @return
 	 */
 	public RestResponse<ResponseModel> getAllData() {
-		return PreMarketWatchService.getAllData() ;
+		return PreMarketWatchService.getAllData();
+		
 	}
 
 	/**
@@ -120,6 +121,5 @@ public class PredifinedMwController implements PredefinedMwControllerspec {
 	public RestResponse<ResponseModel> insertScrip(PreMwScripRequestModel pDto) {
 		return PreMarketWatchService.insertScrip(pDto);
 	}
-
 	
 }

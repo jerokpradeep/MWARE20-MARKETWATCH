@@ -1,15 +1,11 @@
-
 package in.codifi.mw.util;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.enterprise.context.ApplicationScoped;
-
 import org.jboss.resteasy.reactive.RestResponse;
 import org.json.simple.JSONArray;
 
-import in.codifi.mw.model.MWResponseModel;
 import in.codifi.mw.model.ResponseModel;
 import javax.ws.rs.core.Response.Status;
 

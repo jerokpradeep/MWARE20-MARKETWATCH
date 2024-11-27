@@ -3,7 +3,6 @@ package in.codifi.mw.service.spec;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import in.codifi.mw.model.ClinetInfoModel;
-import in.codifi.mw.model.MWResponseModel;
 import in.codifi.mw.model.MwCommodityContarctModel;
 import in.codifi.mw.model.MwRequestModel;
 import in.codifi.mw.model.ResponseModel;

@@ -1,6 +1,8 @@
 
 package in.codifi.mw.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
@@ -13,7 +15,7 @@ public class ResponseModel {
 	private String status;
 	private String message;
 	private Object result;
-	
+		
 
 	public String getStatus() {
 		return status;
@@ -38,4 +40,9 @@ public class ResponseModel {
 	public void setResult(Object result) {
 		this.result = result;
 	}
+
+	public List<String> distinctCountries;
+		// TODO Auto-generated method stub
+		
+	
 }

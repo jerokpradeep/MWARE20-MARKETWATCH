@@ -42,6 +42,8 @@ public interface PreMarketWatchServicespec {
 	/**
 	 * method to get all data
 	 * @author Vinitha
+	 * @param responseContext 
+	 * @param requestContext 
 	 * @return
 	 */
 	RestResponse<ResponseModel> getAllData();

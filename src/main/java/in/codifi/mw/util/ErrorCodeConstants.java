@@ -41,5 +41,7 @@ public class ErrorCodeConstants {
 
 	public static final String ECMW026 = "ECMW026";
 	public static final String ECMW027 = "ECMW027";
+	
+	public static final String EC001 = "EC001";
 
 }

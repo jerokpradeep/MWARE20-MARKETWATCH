@@ -9,10 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-
 import org.jboss.resteasy.reactive.RestResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

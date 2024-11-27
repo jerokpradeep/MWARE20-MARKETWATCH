@@ -17,9 +17,6 @@ import lombok.Setter;
 @Setter
 public class ContractMasterModel implements Serializable{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	private String exch;

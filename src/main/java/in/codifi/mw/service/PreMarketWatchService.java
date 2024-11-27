@@ -4,25 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.jboss.resteasy.reactive.RestResponse;
-
+import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.mw.cache.HazelCacheController;
+import in.codifi.mw.cache.MwCacheController;
 import in.codifi.mw.entity.PredefinedMwEntity;
 import in.codifi.mw.entity.PredefinedMwScripsEntity;
+import in.codifi.mw.filter.AccessLogFilter;
 import in.codifi.mw.model.PreMwRequestModel;
 import in.codifi.mw.model.PreMwScripRequestModel;
 import in.codifi.mw.model.ResponseModel;
 import in.codifi.mw.repository.PreMarketWatchRepository;
 import in.codifi.mw.repository.PredefinedMwScripRepository;
 import in.codifi.mw.service.spec.PreMarketWatchServicespec;
-import in.codifi.mw.util.ErrorMessageConstants;
 import in.codifi.mw.util.ErrorCodeConstants;
+import in.codifi.mw.util.ErrorMessageConstants;
 import in.codifi.mw.util.PrepareResponse;
-import in.codifi.mw.cache.HazelCacheController;
-import in.codifi.mw.cache.MwCacheController;
-import in.codifi.cache.model.ContractMasterModel;
 
 @ApplicationScoped
 public class PreMarketWatchService implements PreMarketWatchServicespec {
@@ -37,7 +36,10 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 	@Inject
 	PrepareResponse prepareResponse;
 
+	@Inject
+	AccessLogFilter accessLogService;
 	
+
 	/**
 	 * Method to create predefine marketwatch name
 	 * @author Vinitha
@@ -191,6 +193,7 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 	 * @return
 	 */
 	public RestResponse<ResponseModel> getAllData() {
+		
 		 try {
 	            List<PredefinedMwEntity> entities = predefinedMwRepository.findAll();
 	            
@@ -424,5 +427,8 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 		}
 		return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.FAILED_INSERT_DATA,ErrorCodeConstants.ECMW014);
 	}
-
 }
+	
+
+
+   

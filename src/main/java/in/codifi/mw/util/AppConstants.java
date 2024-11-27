@@ -92,7 +92,7 @@ public class AppConstants {
 
 	public static final String TEMP_USER_ID = "CD-ADMIN";
 
-	public static final String MODULE_MW = "Marketwatch";
+	public static final String c = "Marketwatch";
 	public static final String SOURCE_MOB = "MOB";
 	public static final String PNL_LOT = "PNL_LOT";
 	

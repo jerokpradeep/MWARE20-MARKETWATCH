@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 
 import in.codifi.mw.entity.PredefinedMwScripsEntity;
-import in.codifi.mw.model.PreMwScripRequestModel;
 import lombok.Getter;
 import lombok.Setter;
 
