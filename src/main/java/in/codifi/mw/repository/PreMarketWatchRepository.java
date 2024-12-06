@@ -42,4 +42,6 @@ public interface PreMarketWatchRepository extends JpaRepository <PredefinedMwEnt
 	 */	
 	PredefinedMwEntity findByMwIdAndMwName(Long mwId , String mwName);
 
+	PredefinedMwEntity findByMwName(String mwName);
+
 }
