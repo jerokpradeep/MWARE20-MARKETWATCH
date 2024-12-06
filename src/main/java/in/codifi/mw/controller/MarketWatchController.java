@@ -71,25 +71,51 @@ public class MarketWatchController implements IMarketWatchController {
 	 */
 	@Override
 	public RestResponse<ResponseModel> renameMarketWatch(MwRequestModel pDto) {
-
-		boolean isValid = validateRequestService.isValidUser(pDto);
-		if (isValid) {
-			return iMarketWatchService.renameMarketWatch(pDto);
-		} else {
+		
+		/*
+		 * Check the client info, get the user with the client info
+		 */
+		ClinetInfoModel info = appUtil.getClientInfo();
+		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
+			Log.error("Client info is null");
+			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
+		return iMarketWatchService.renameMarketWatch(pDto, info.getUcc());
+
+//		boolean isValid = validateRequestService.isValidUser(pDto);
+//		if (isValid) {
+//			return iMarketWatchService.renameMarketWatch(pDto);
+//		} else {
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
 //		return iMarketWatchService.renameMarketWatch(pDto);
 	}
 
 	@Override
 	public RestResponse<ResponseModel> sortMwScrips(MwRequestModel pDto) {
-
-		boolean isValid = validateRequestService.isValidUser(pDto);
-		if (isValid) {
-			return iMarketWatchService.sortMwScrips(pDto);
-		} else {
+		
+		/*
+		 * Check the client info, get the user with the client info
+		 */
+		ClinetInfoModel info = appUtil.getClientInfo();
+		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
+			Log.error("Client info is null");
+			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
+		return iMarketWatchService.sortMwScrips(pDto, info.getUcc());
+
+//		boolean isValid = validateRequestService.isValidUser(pDto);
+//		if (isValid) {
+//			return iMarketWatchService.sortMwScrips(pDto);
+//		} else {
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
 
 //		return iMarketWatchService.sortMwScrips(pDto);
 	}
@@ -101,13 +127,27 @@ public class MarketWatchController implements IMarketWatchController {
 	 */
 	@Override
 	public RestResponse<ResponseModel> addscrip(MwRequestModel pDto) {
-
-		boolean isValid = validateRequestService.isValidUser(pDto);
-		if (isValid) {
-			return iMarketWatchService.addscrip(pDto);
-		} else {
+		
+		/*
+		 * Check the client info, get the user with the client info
+		 */
+		ClinetInfoModel info = appUtil.getClientInfo();
+		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
+			Log.error("Client info is null");
+			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
+		return iMarketWatchService.addscrip(pDto, info.getUcc());
+		
+
+//		boolean isValid = validateRequestService.isValidUser(pDto);
+//		if (isValid) {
+//			return iMarketWatchService.addscrip(pDto);
+//		} else {
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
 
 //		return iMarketWatchService.addscrip(pDto);
 	}
@@ -119,12 +159,27 @@ public class MarketWatchController implements IMarketWatchController {
 	 */
 	@Override
 	public RestResponse<ResponseModel> deletescrip(MwRequestModel pDto) {
-		boolean isValid = validateRequestService.isValidUser(pDto);
-		if (isValid) {
-			return iMarketWatchService.deletescrip(pDto);
-		} else {
+		
+		/*
+		 * Check the client info, get the user with the client info
+		 */
+		ClinetInfoModel info = appUtil.getClientInfo();
+		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
+			Log.error("Client info is null");
+			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
+		return iMarketWatchService.deletescrip(pDto, info.getUcc());
+		
+		
+//		boolean isValid = validateRequestService.isValidUser(pDto);
+//		if (isValid) {
+//			return iMarketWatchService.deletescrip(pDto);
+//		} else {
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
 //		return iMarketWatchService.deletescrip(pDto);
 	}
 
@@ -135,14 +190,27 @@ public class MarketWatchController implements IMarketWatchController {
 	 */
 	@Override
 	public RestResponse<ResponseModel> getAllMwScrips(MwRequestModel pDto) {
-
-		System.out.println("getAllMwScrips - controller");
-		boolean isValid = validateRequestService.isValidUser(pDto);
-		if (isValid) {
-			return iMarketWatchService.getAllMwScrips(pDto.getUserId());
-		} else {
+		
+		/*
+		 * Check the client info, get the user with the client info
+		 */
+		ClinetInfoModel info = appUtil.getClientInfo();
+		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
+			Log.error("Client info is null");
+			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
+		return iMarketWatchService.getAllMwScrips(pDto, info.getUcc());
+
+//		System.out.println("getAllMwScrips - controller");
+//		boolean isValid = validateRequestService.isValidUser(pDto);
+//		if (isValid) {
+//			return iMarketWatchService.getAllMwScrips(pDto.getUserId());
+//		} else {
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
 //		return iMarketWatchService.getAllMwScrips(pDto.getUserId());
 	}
 

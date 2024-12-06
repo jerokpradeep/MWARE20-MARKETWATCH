@@ -4,7 +4,7 @@ public class ErrorCodeConstants {
 	
 	//Failed Message For Predefined Market Watch Scrip Table
 	public static final String ECMW001 = "ECMW001";
-	public static final String ECMW102 = "ECMW002";
+	public static final String ECMW002 = "ECMW002";
 	
 	// Markert Watch Request Failed Message
 	public static final String ECMW003 = "ECMW003";
@@ -42,4 +42,15 @@ public class ErrorCodeConstants {
 	public static final String ECMW026 = "ECMW026";
 	public static final String ECMW027 = "ECMW027";
 
+	
+	public static final String ECMW101 = "ECMW101";
+	public static final String ECMW102 = "ECMW102";
+	public static final String ECMW103 = "ECMW103";
+	public static final String ECMW104 = "ECMW104";
+	public static final String ECMW105 = "ECMW105";
+	public static final String ECMW106 = "ECMW106";
+	public static final String ECMW107 = "ECMW107";
+	public static final String ECMW108 = "ECMW108";
+	public static final String ECMW109 = "ECMW109";
+	public static final String ECMW110 = "ECMW110";
 }

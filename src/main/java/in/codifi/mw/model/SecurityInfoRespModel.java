@@ -32,15 +32,15 @@ public class SecurityInfoRespModel {
 	@JsonProperty("expiry")
 	private Object expiry;
 	@JsonProperty("qtyLimit")
-	private Integer qtyLimit;
+	private String qtyLimit;
 	@JsonProperty("sliceEnable")
 	private String sliceEnable;
 	@JsonProperty("surveillance")
 	private String surveillance;
 	@JsonProperty("scripIndex")
-	private Boolean scripIndex;
+	private String scripIndex;
 	@JsonProperty("scripFnO")
-	private Boolean scripFnO;
+	private String scripFnO;
 	@JsonProperty("spotData")
 	private SpotData spotData;
 	@JsonProperty("prompt")

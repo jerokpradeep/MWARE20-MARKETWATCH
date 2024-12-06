@@ -18,7 +18,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+//@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class CacheMwDetailsModel implements Serializable {
 
 	private static final long serialVersionUID = 1L;

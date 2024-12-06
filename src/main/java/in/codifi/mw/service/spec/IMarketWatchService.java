@@ -20,33 +20,38 @@ public interface IMarketWatchService {
 
 	/**
 	 * @param pDto
+	 * @param userId 
 	 * @return
 	 */
-	RestResponse<ResponseModel> renameMarketWatch(MwRequestModel pDto);
+	RestResponse<ResponseModel> renameMarketWatch(MwRequestModel pDto, String userId);
 
 	/**
 	 * @param pDto
+	 * @param userId 
 	 * @return
 	 */
-	RestResponse<ResponseModel> sortMwScrips(MwRequestModel pDto);
+	RestResponse<ResponseModel> sortMwScrips(MwRequestModel pDto, String userId);
 
 	/**
 	 * @param pDto
+	 * @param userId 
 	 * @return
 	 */
-	RestResponse<ResponseModel> addscrip(MwRequestModel pDto);
+	RestResponse<ResponseModel> addscrip(MwRequestModel pDto, String userId);
 
 	/**
 	 * @param pDto
+	 * @param userId 
 	 * @return
 	 */
-	RestResponse<ResponseModel> deletescrip(MwRequestModel pDto);
+	RestResponse<ResponseModel> deletescrip(MwRequestModel pDto, String userId);
 
 	/**
+	 * @param pDto 
 	 * @param userId
 	 * @return
 	 */
-	RestResponse<ResponseModel> getAllMwScrips(String userId);
+	RestResponse<ResponseModel> getAllMwScrips(MwRequestModel pDto, String userId);
 
 	/**
 	 * @return

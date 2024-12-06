@@ -95,6 +95,13 @@ public class PrepareResponse {
 		responseObject.setMessage(AppConstants.SUCCESS_STATUS);
 		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
+	
+	public RestResponse<ResponseModel> prepareMWSuccessResponseString(String resultData) {
+		ResponseModel responseObject = new ResponseModel();
+		responseObject.setStatus(AppConstants.STATUS_OK);
+		responseObject.setMessage(resultData);
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
+	}
 
 	public RestResponse<ResponseModel> prepareFailedResponseObj(String message, String status) {
 	    // Create the inner result object
@@ -137,5 +144,32 @@ public class PrepareResponse {
 		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
 
+	
+	public RestResponse<ResponseModel> prepareMWFailedResponseString(String resultData) {
+		ResponseModel responseObject = new ResponseModel();
+		responseObject.setStatus(AppConstants.STATUS_OK);
+		responseObject.setMessage(resultData);
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
+	}
+	
+	public RestResponse<ResponseModel> prepareMWFailedResponse(String code,String message) {
+		ResponseModel responseObject = new ResponseModel();
+		responseObject.setStatus(code);
+		responseObject.setMessage(message);
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
+	}
+	
+	public RestResponse<ResponseModel> prepareSuccessResponseWithMessage(Object resultData, String message,
+			boolean withArray) {
+		ResponseModel responseObject = new ResponseModel();
+		responseObject.setStatus(AppConstants.STATUS_OK);
+		responseObject.setMessage(message);
+		if (withArray) {
+			responseObject.setResult(getResult(resultData));
+		} else {
+			responseObject.setResult(resultData);
+		}
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
+	}
 
 }
