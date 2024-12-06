@@ -118,8 +118,8 @@ public class ScripsService implements ScripsServiceSpecs {
 
 			if (responses != null && responses.size() > 0) {
 				JSONObject finalOutput = new JSONObject();
-				finalOutput.put("pageSize", totalCount);
-				finalOutput.put("currentPage", currentPage);
+				finalOutput.put("pageSize", currentPage);
+				finalOutput.put("currentPage", reqModel.getCurrentPage());
 				finalOutput.put("searchResult", responses);
 				return prepareResponse.prepareSuccessResponseWithMessage(finalOutput, AppConstants.SUCCESS_STATUS,
 						false);

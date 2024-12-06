@@ -202,8 +202,8 @@ public class MarketWatchService implements IMarketWatchService {
 				result.put("mwId", mwId);
 				result.put("mwName", mwName);
 				result.put("isEdit", true);
-				result.put("isDefault", true);
-				result.put("isRename", true);
+				result.put("isDefault", false);
+				result.put("isRename", false);
 
 				if (tempJsonObject != null && tempJsonObject.size() > 0) {
 					result.put("scrips", tempJsonObject);
@@ -616,10 +616,8 @@ public class MarketWatchService implements IMarketWatchService {
 					fResult.setExchange(masterData.getExch());
 					fResult.setSegment(masterData.getSegment());
 					fResult.setExpiry(masterData.getExpiry() == null ? null : masterData.getExpiry());
-//					fResult.setExpiry(masterData.getExpiry());
 					fResult.setSortOrder(result.getSortingOrder());
 					fResult.setPdc(masterData.getPdc());
-//					fResult.setWeekTag(masterData.getWeekTag());
 					fResult.setWeekTag(masterData.getWeekTag() == null ? "" : masterData.getWeekTag());
 
 //					fResult.badge = Map.of("event", "", "bnpl", "", "ideas", "", "holdingqty", "");

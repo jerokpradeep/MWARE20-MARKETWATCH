@@ -163,13 +163,16 @@ public class ScripSearchEntityManager {
 				model.setSegment(segmentIifl);
 				model.setToken(token);
 				model.setFormattedInsName(formattedInsName);
-				model.setWeekTag(weekTag);
+//				model.setWeekTag(weekTag);
+				model.setWeekTag(weekTag == null ? "" : weekTag);
 				model.setCompanyName(companyName);
-				model.setOptionType(optiontype);
+//				model.setOptionType(optiontype);
+				model.setWeekTag(optiontype == null ? "" : optiontype);
 				model.setIsFnOAvailable(exchange.equalsIgnoreCase("NFO") ? "true" : "false");
 
 				model.setSeries(groupName);
-				model.setIsin(isin);
+//				model.setIsin(isin);
+				model.setIsin(isin == null ? "" :isin);
 
 				if (exchange.equalsIgnoreCase("NSE")) {
 					model.setSymbol(resSymbol + "-" + groupName);
@@ -192,6 +195,11 @@ public class ScripSearchEntityManager {
 		return respone;
 	}
 
+	/**
+	 * 
+	 * @param reqModel
+	 * @return
+	 */
 	public String getScripsCount(SearchScripReqModel reqModel) {
 		List<ScripSearchResp> respone = new ArrayList<>();
 		String totalCount = "0";
