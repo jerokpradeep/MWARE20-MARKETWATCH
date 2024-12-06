@@ -13,6 +13,7 @@ import com.hazelcast.core.HazelcastInstance;
 
 import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.model.PnlLotModel;
+import in.codifi.mw.model.ScripSearchResp;
 import in.codifi.mw.model.VendorDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,4 +55,10 @@ public class HazelcastConfig {
 	private Map<String, String> isinByTokenKB = getHz().getMap("isinByTokenKB");
 	private Map<String, String> tradingSymbolTokenMapKB = getHz().getMap("tradingSymbolTokenMapKB");
 	private Map<String, VendorDTO> ssoSessionMapping = getHz().getMap("ssoSessionMapping");
+	
+	private Map<String, Boolean> fetchDataFromCache = getHz().getMap("fetchDataFromCache");
+	private Map<Integer, List<String>> distinctSymbols = getHz().getMap("distinctSymbols");
+	private Map<String, List<ScripSearchResp>> loadedSearchData = getHz().getMap("loadedSearchData");
+	private Map<String, ScripSearchResp> indexDetails = getHz().getMap("indexDetails");
+
 }

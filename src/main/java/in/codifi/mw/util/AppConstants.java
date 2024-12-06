@@ -86,7 +86,7 @@ public class AppConstants {
 	public static final String UPDATE_QUERIES = "updateQueries";
 	public static final String RUNNING_STATUS = "runningStatus";
 
-	public static final String MARKET_WATCH_LIST_NAME = "MWList";
+	public static final String MARKET_WATCH_LIST_NAME = "Watchlist";
 	public static final int MW_SIZE = 5;
 	public static final String PREDEFINED_MW = "PreDefinedMWList";
 
@@ -96,7 +96,26 @@ public class AppConstants {
 	public static final String SOURCE_MOB = "MOB";
 	public static final String PNL_LOT = "PNL_LOT";
 	
-	public static final String MW_NAME= "Error : 'MwName' characters should be less than or equal to 40 characters";
+	public static final String MW_NAME= "Invalid MarketWatch Name.";
 	
+	public static final String SORTING_ORDER= "Sorting order saved successfully.";
+
+	public static final String ERROR_MIN_CHAR = "Minimum 3 characters required";
+	public static final String FETCH_DATA_FROM_CACHE = "fetchDataFromCache";
+	public static final String NOT_FOUND = "No record found";
+
+	
+	public static final String INVALID_MW_ID = "Invalid MarketWatch Id";
+	public static final String INVALID_SORTING_ORDER = "Invalid sortingOrder";
+	public static final String INVALID_EXCH = "Invalid Exchange";
+	public static final String INVALID_TOKEN = "Invalid Token";
+	public static final String INVALID_SEARCH_TEXT = "Invalid SearchText";
+	public static final String ALREADY_DELETED_SCRIPT = "Script is not Available";
+	public static final String MW_NAME_40= "MarketWatch Name should not be more than 40 characters";
+	public static final String PAGE_SIZE_100= "Page Size should not be more than 100 characters";
+	public static final String CURRENT_PAGE_50= "Current Page Size should not be more than 50 characters";
+	
+	public static final String INVALID_PAGE_SIZE= "Invalid Page Size";
+	public static final String INVALID_CURRENT_PAGE= "Invalid Current Page";
 
 }

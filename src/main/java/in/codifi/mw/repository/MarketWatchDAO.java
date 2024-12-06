@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 import in.codifi.mw.entity.MarketWatchNameDTO;
 import in.codifi.mw.entity.MarketWatchScripDetailsDTO;
 import in.codifi.mw.model.CacheMwDetailsModel;
+import in.codifi.mw.model.MwRequestModel;
 import io.quarkus.logging.Log;
 
 /**
@@ -40,7 +41,7 @@ public class MarketWatchDAO {
 		ResultSet rSet = null;
 		try {
 			conn = dataSource.getConnection();
-			String query = "SELECT id, mw_name,user_id,(case when mw_id is null then 0 else mw_id end) as mw_id  FROM tbl_market_watch_name where user_id = ?";
+			String query = "SELECT id, mw_name,user_id,(case when mw_id is null then 0 else mw_id end) as mw_id  FROM tbl_market_watch_list where user_id = ?";
 			pStmt = conn.prepareStatement(query);
 			int paramPos = 1;
 			pStmt.setString(paramPos++, userId);
@@ -87,7 +88,7 @@ public class MarketWatchDAO {
 		try {
 			conn = dataSource.getConnection();
 			pStmt = conn.prepareStatement(
-					"INSERT INTO tbl_market_watch_name (user_id,mw_id,mw_name,position) VALUES (?,?,?,?)");
+					"INSERT INTO tbl_market_watch_list (user_id,mw_id,mw_name,position) VALUES (?,?,?,?)");
 			for (MarketWatchNameDTO dto : mwNameDto) {
 				int paramPos = 1;
 				pStmt.setString(paramPos++, dto.getUserId());
@@ -140,7 +141,7 @@ public class MarketWatchDAO {
 			String query = "SELECT A.mw_name, A.user_id,(case when A.mw_id is null then 0 else A.mw_id end) as mw_id,"
 					+ " B.exch, B.exch_seg, B.token, B.symbol, B.trading_symbol, B.formatted_ins_name, B.expiry_date, B.pdc,"
 					+ " (case when B.sorting_order is null then 0 else B.sorting_order end) as sorting_order"
-					+ " FROM tbl_market_watch_name as A  LEFT JOIN tbl_market_watch_scrips B on  A.mw_id = B.mw_id and"
+					+ " FROM tbl_market_watch_list as A  LEFT JOIN tbl_market_watch_scrips B on  A.mw_id = B.mw_id and"
 					+ " A.user_id = B.user_id where A.user_id = ? order by A.user_id, A.mw_id , B.sorting_order";
 			pStmt = conn.prepareStatement(query);
 			int paramPos = 1;
@@ -194,7 +195,7 @@ public class MarketWatchDAO {
 //			String query = "SELECT A.mw_name, A.user_id,(case when A.mw_id is null then 0 else A.mw_id end) as mw_id,"
 //					+ " B.exch, B.token, B.expiry_date,"
 //					+ " (case when B.sorting_order is null then 0 else B.sorting_order end) as sorting_order"
-//					+ " FROM tbl_market_watch_name as A  LEFT JOIN tbl_market_watch_scrips B on  A.mw_id = B.mw_id and"
+//					+ " FROM tbl_market_watch_list as A  LEFT JOIN tbl_market_watch_scrips B on  A.mw_id = B.mw_id and"
 //					+ " A.user_id = B.user_id where A.user_id = ? order by A.user_id, A.mw_id , B.sorting_order";
 //			pStmt = conn.prepareStatement(query);
 //			int paramPos = 1;
@@ -244,7 +245,7 @@ public class MarketWatchDAO {
 		try {
 			conn = dataSource.getConnection();
 			pStmt = conn
-					.prepareStatement("UPDATE tbl_market_watch_name SET mw_name = ? WHERE mw_id = ? AND user_id = ?");
+					.prepareStatement("UPDATE tbl_market_watch_list SET mw_name = ? WHERE mw_id = ? AND user_id = ?");
 			int paramPos = 1;
 			pStmt.setString(paramPos++, mwName);
 			pStmt.setInt(paramPos++, mwId);
@@ -280,7 +281,7 @@ public class MarketWatchDAO {
 		ResultSet rSet = null;
 		try {
 			conn = dataSource.getConnection();
-			String query = "SELECT token,exch,(case when sorting_order is null then 0 else sorting_order end) as sorting_order,id from tbl_market_watch_name where user_id = ? and mw_id = ?";
+			String query = "SELECT token,exch,(case when sorting_order is null then 0 else sorting_order end) as sorting_order,id from tbl_market_watch_list where user_id = ? and mw_id = ?";
 			pStmt = conn.prepareStatement(query);
 			int paramPos = 1;
 			pStmt.setString(paramPos++, userId);
@@ -329,7 +330,7 @@ public class MarketWatchDAO {
 		try {
 			conn = dataSource.getConnection();
 			pStmt = conn.prepareStatement(
-					"UPDATE tbl_market_watch_name SET sorting_order = ? where mw_id = ? and user_id = ? and id = ?");
+					"UPDATE tbl_market_watch_list SET sorting_order = ? where mw_id = ? and user_id = ? and id = ?");
 			for (MarketWatchScripDetailsDTO dto : scripsDto) {
 				int paramPos = 1;
 				pStmt.setInt(paramPos++, dto.getSortingOrder());
@@ -372,8 +373,8 @@ public class MarketWatchDAO {
 			conn = dataSource.getConnection();
 			pStmt = conn.prepareStatement("INSERT INTO tbl_market_watch_scrips (user_id,mw_id,token,alter_token,exch,"
 					+ "exch_seg,trading_symbol,formatted_ins_name,group_name,instrument_type,expiry_date,lot_size,"
-					+ "option_type,pdc,sorting_order,strike_price,symbol,tick_size) "
-					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+					+ "option_type,pdc,sorting_order,strike_price,symbol,tick_size,week_tag) "
+					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 			for (MarketWatchScripDetailsDTO dto : mwScripsDto) {
 				int paramPos = 1;
 				pStmt.setString(paramPos++, dto.getUserId());
@@ -399,6 +400,7 @@ public class MarketWatchDAO {
 				pStmt.setString(paramPos++, dto.getStrikePrice());
 				pStmt.setString(paramPos++, dto.getSymbol());
 				pStmt.setString(paramPos++, dto.getTickSize());
+				pStmt.setString(paramPos++, dto.getWeekTag());
 				count++;
 				pStmt.addBatch();
 				if (count == 1000) {
@@ -466,6 +468,94 @@ public class MarketWatchDAO {
 			}
 		}
 		return resp;
+	}
+
+
+	/**
+	 * @param pDto
+	 * @param userId
+	 * @return
+	 */
+	public long selectByUserId(MwRequestModel pDto, String userId) {
+		long response = 0;
+
+		PreparedStatement pStmt = null;
+		Connection conn = null;
+		ResultSet rSet = null;
+		try {
+			conn = dataSource.getConnection();
+			String query = "SELECT id from tbl_market_watch_scrips  WHERE mw_id = ? and user_id = ? and token = ? and exch = ?";
+			pStmt = conn.prepareStatement(query);
+			int paramPos = 1;
+			pStmt.setInt(paramPos++, pDto.getMwId());
+			pStmt.setString(paramPos++, userId);
+			pStmt.setString(paramPos++, pDto.getScripData().get(0).getToken().trim());
+			pStmt.setString(paramPos++, pDto.getScripData().get(0).getExch().trim());
+			rSet = pStmt.executeQuery();
+			if (rSet != null) {
+				while (rSet.next()) {
+					response = rSet.getLong("id");
+					System.out.println(response);
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		} finally {
+			try {
+				if (rSet != null)
+					rSet.close();
+				if (pStmt != null)
+					pStmt.close();
+				if (conn != null)
+					conn.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return response;
+	}
+
+	/**
+	 * @param userId
+	 * @return
+	 */
+	public long checkUserId(String userId) {
+		long response = 0;
+
+		PreparedStatement pStmt = null;
+		Connection conn = null;
+		ResultSet rSet = null;
+		try {
+			conn = dataSource.getConnection();
+			String query = "SELECT id from tbl_market_watch_list  WHERE user_id = ?";
+			pStmt = conn.prepareStatement(query);
+			int paramPos = 1;
+			pStmt.setString(paramPos++, userId);
+			rSet = pStmt.executeQuery();
+			if (rSet != null) {
+				while (rSet.next()) {
+					response = rSet.getLong("id");
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		} finally {
+			try {
+				if (rSet != null)
+					rSet.close();
+				if (pStmt != null)
+					pStmt.close();
+				if (conn != null)
+					conn.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return response;
 	}
 
 }
