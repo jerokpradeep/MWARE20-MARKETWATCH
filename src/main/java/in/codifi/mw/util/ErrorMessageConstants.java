@@ -17,6 +17,15 @@ public class ErrorMessageConstants {
 	public static final String NOT_ABLE_TO_MW_DELETED = "Not able to delete marketwatch";
 	public static final String NULL_DATA_STATUS = null;
 	public static final String NO_MW = "No Data";
+	public static final String INVALID_ID = " MarketWatch Id or Position should not be more than 15 ";
+	public static final String INVALID_ORDER = "SortedOrder should not be more than 60 ";
+	public static final String INVALID_NAME="MarketWatch Name should not be more than 40 characters";
+	public static final String INVALID_BINARY = "Should accept only 0 and 1";
+	public static final String INVALID_TOKEN = "INVALID_TOKEN";
+	public static final String INVALID_EXCHANGE = "INVALID_EXCHANGE";
+	public static final String EXISTING_MWID = "MarketWatch with Same ID already exist";
+	public static final String EXISTING_MWNAME = "MarketWatch with Same NAME already exist";
+
 	
 	//Failed Message For Predefined Market Watch Scrip Table
 	public static final String FAILED_TO_ADD = "Failed to add Scrip";

@@ -87,7 +87,7 @@ public class PredefinedMwScripsEntity implements Serializable  {
 //	private String weekTag;
 
 	@Column(name = "SORTING_ORDER")
-	private int sortOrder;
+	private long sortOrder;
 
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	@Column(name = "UPDATED_ON")

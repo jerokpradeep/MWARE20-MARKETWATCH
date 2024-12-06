@@ -91,9 +91,9 @@ public class PredifinedMwController implements PredefinedMwControllerspec {
 	 * @param token
 	 * @return
 	 */
-	public RestResponse<ResponseModel> deleteScrip(Long MwId , String token) {
+	public RestResponse<ResponseModel> deleteScrip(PreMwScripRequestModel pDto) {
 		
-		return PreMarketWatchService.deleteScrip(MwId,token);
+		return PreMarketWatchService.deleteScrip(pDto.getMwId(),pDto.getToken());
 	}
 
 

@@ -1,5 +1,6 @@
 package in.codifi.mw.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,7 +21,10 @@ public interface PredefinedMwScripRepository extends JpaRepository <PredefinedMw
 	 * @author Vinitha
 	 *@return
 	 */
-	Optional<PredefinedMwScripsEntity> findByToken(String token);
+	PredefinedMwScripsEntity findByToken(String token);
+
+
+	List<PredefinedMwScripsEntity> findByMwId(Long mwId);
 	
 
 }
