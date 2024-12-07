@@ -101,12 +101,13 @@ public interface PredefinedMwControllerspec {
 	 * @param token
 	 * @return
 	 */
-	@Path("/delete/scrip")
+	@Path("/delete/scrip/{MwId}/{token}")
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "To deletescrip predefined market Watch")
-	RestResponse<ResponseModel> deleteScrip(PreMwScripRequestModel pDto);
+	RestResponse<ResponseModel> deleteScrip(@PathParam("MwId") Long MwId,
+											@PathParam("token")String token);
 	
 	/**
 	 * Method to Sort Scrips

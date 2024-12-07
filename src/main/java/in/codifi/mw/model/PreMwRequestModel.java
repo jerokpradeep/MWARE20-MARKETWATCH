@@ -22,5 +22,6 @@ public class PreMwRequestModel {
 	private List<PredefinedMwScripsEntity> scrips;
 	private int activeStatus;
 	private Date UpdatedOn;
+	public Object IsEnabled;
 		
 }

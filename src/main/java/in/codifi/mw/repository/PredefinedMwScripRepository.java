@@ -25,6 +25,15 @@ public interface PredefinedMwScripRepository extends JpaRepository <PredefinedMw
 
 
 	List<PredefinedMwScripsEntity> findByMwId(Long mwId);
+
+
+	PredefinedMwScripsEntity findByExchangeAndToken(String exchange, String token);
+
+
+	PredefinedMwScripsEntity findByMwIdAndSortOrder(Long mwId , int sortOrder);
+
+
+	PredefinedMwScripsEntity findByIdAndSortOrder(Long id, int sortOrder);
 	
 
 }

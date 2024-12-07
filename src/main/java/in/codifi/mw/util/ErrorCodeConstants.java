@@ -17,7 +17,7 @@ public class ErrorCodeConstants {
 	public static final String ECMW008 = "ECMW008";
 	public static final String ECMW009 = "ECMW009";
 	public static final String ECMW010 = "ECMW010";
-
+	
 	//Failed Message For Predefined Market Watch Scrip Table
 	public static final String ECMW011 = "ECMW011";
 	public static final String ECMW012 = "ECMW012";
@@ -42,6 +42,22 @@ public class ErrorCodeConstants {
 	public static final String ECMW026 = "ECMW026";
 	public static final String ECMW027 = "ECMW027";
 
+	
+	public static final String ECMW111 = "ECMW111";
+	public static final String ECMW112 = "ECMW112";
+	public static final String ECMW113 = "ECMW113";
+	public static final String ECMW114 = "ECMW114";
+	public static final String ECMW115 = "ECMW115";
+	public static final String ECMW116 = "ECMW116";
+	public static final String ECMW117 = "ECMW117";
+	public static final String ECMW118 = "ECMW118";
+	public static final String ECMW119 = "ECMW119";
+	public static final String ECMW120 = "ECMW120";
+	public static final String ECMW121 = "ECMW121";
+	public static final String ECMW122 = "ECMW122";
+	public static final String ECMW123 = "ECMW123";
+	public static final String ECMW124 = "ECMW124";
+	public static final String ECMW125 = "ECMW125";
 	
 	public static final String ECMW101 = "ECMW101";
 	public static final String ECMW102 = "ECMW102";
