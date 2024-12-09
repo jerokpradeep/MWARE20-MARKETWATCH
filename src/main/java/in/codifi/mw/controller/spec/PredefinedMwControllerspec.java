@@ -101,12 +101,13 @@ public interface PredefinedMwControllerspec {
 	 * @param token
 	 * @return
 	 */
-	@Path("/delete/scrip/{MwId}/{token}")
+	@Path("/delete/scrip/{MwId}/{exchange}/{token}")
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "To deletescrip predefined market Watch")
 	RestResponse<ResponseModel> deleteScrip(@PathParam("MwId") Long MwId,
+											@PathParam("exchange") String exchange,
 											@PathParam("token")String token);
 	
 	/**
@@ -125,7 +126,7 @@ public interface PredefinedMwControllerspec {
 	RestResponse<ResponseModel> sortMwScrips(@PathParam("MwId") Long MwId,
 											 @PathParam("MwName")String MwName ,
 											 @PathParam("id") Long id,
-											 @PathParam("sortOrder")int sortOrder);
+											 @PathParam("sortOrder")Long sortOrder);
 
 	/**
 	 * Method to insert Scrips

@@ -91,8 +91,8 @@ public class PredifinedMwController implements PredefinedMwControllerspec {
 	 * @param token
 	 * @return
 	 */
-	public RestResponse<ResponseModel> deleteScrip(Long MwId, String token) {		
-		return PreMarketWatchService.deleteScrip(MwId,token);
+	public RestResponse<ResponseModel> deleteScrip(Long MwId,String exchange, String token) {		
+		return PreMarketWatchService.deleteScrip(MwId,exchange,token);
 	}
 
 
@@ -106,7 +106,7 @@ public class PredifinedMwController implements PredefinedMwControllerspec {
 	 *@return
 	 */
 
-	public RestResponse<ResponseModel> sortMwScrips(Long MwId, String MwName,Long id,int sortOrder ) {	
+	public RestResponse<ResponseModel> sortMwScrips(Long MwId, String MwName,Long id,Long sortOrder ) {	
 		return PreMarketWatchService.sortScrip(MwId,MwName,id,sortOrder);
 	}
 

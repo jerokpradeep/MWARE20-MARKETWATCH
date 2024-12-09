@@ -13,7 +13,7 @@ public interface PredefinedMwScripRepository extends JpaRepository <PredefinedMw
 	 * @author Vinitha
 	 *@return
 	 */
-	void deleteByToken(String token);
+	void deleteByToken(PredefinedMwScripsEntity entity1);
 
 
 	/**
@@ -21,7 +21,7 @@ public interface PredefinedMwScripRepository extends JpaRepository <PredefinedMw
 	 * @author Vinitha
 	 *@return
 	 */
-	PredefinedMwScripsEntity findByToken(String token);
+	List<PredefinedMwScripsEntity> findByToken(String token);
 
 
 	List<PredefinedMwScripsEntity> findByMwId(Long mwId);
@@ -30,10 +30,13 @@ public interface PredefinedMwScripRepository extends JpaRepository <PredefinedMw
 	PredefinedMwScripsEntity findByExchangeAndToken(String exchange, String token);
 
 
-	PredefinedMwScripsEntity findByMwIdAndSortOrder(Long mwId , int sortOrder);
+	PredefinedMwScripsEntity findByMwIdAndSortOrder(Long mwId , Long sortOrder);
 
 
-	PredefinedMwScripsEntity findByIdAndSortOrder(Long id, int sortOrder);
+	PredefinedMwScripsEntity findByIdAndSortOrder(Long id, Long sortOrder);
+
+
+	void deleteByExchangeAndToken(String exchange, String token);
 	
 
 }

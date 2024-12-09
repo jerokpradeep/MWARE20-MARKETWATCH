@@ -58,14 +58,14 @@ public interface PreMarketWatchServicespec {
 	 * @author Vinitha
 	 * @return
 	 */
-	RestResponse<ResponseModel> deleteScrip(Long MwId, String token);
+	RestResponse<ResponseModel> deleteScrip(Long MwId,String exchange, String token);
 
 	/**
 	 * Method to Sort Scrips
 	 * @author Vinitha
 	 *@return
 	 */
-	RestResponse<ResponseModel> sortScrip(Long MwId, String MwName ,Long id,int sortOrder);
+	RestResponse<ResponseModel> sortScrip(Long MwId, String MwName ,Long id,Long sortOrder);
 
 	/**
 	 * Method to insert Scrips

@@ -12,7 +12,7 @@ public class PreMwScripRequestModel {
 	private Long mwId;
 	private String token;
 	private String exchange;	
-	private int sortOrder;
+	private Long sortOrder;
 	private int activeStatus = 1;
 	
 }

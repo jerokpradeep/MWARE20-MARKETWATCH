@@ -127,7 +127,7 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 			if(marketWatch.getIsEditable()==0 && pDto.getIsEditable() == null) 
 				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.SCRIP_ISNOT_EDITABLE , ErrorCodeConstants.ECMW018);
 			
-			if(marketWatch.getIsEditable()==0 && pDto.getIsEditable() != null && !pDto.getIsEditable().equals(marketWatch.getIsEditable())) 
+			if(pDto.getIsEditable() != null && !pDto.getIsEditable().equals(marketWatch.getIsEditable())) 
 				marketWatch.setIsEditable(pDto.getIsEditable());
 			
 			if( pDto.getMwName() != null && pDto.getMwName().length()>40)
@@ -376,7 +376,7 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 					scrip=data.getScrips().get(i);
 					String exch = scrip.getExchange();
 					String token = scrip.getToken();				
-					
+					System.out.print(exch + "_" + token);
 					if (HazelCacheController.getInstance().getContractMaster()
 							.get(exch + "_" + token) != null) {
 						
@@ -389,6 +389,7 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 						scrip.setSortOrder(maxSortOrder);				
 						response.add(scrip);
 					}
+					
 				}
 			} catch (Exception e) {
 	            e.printStackTrace();
@@ -401,30 +402,34 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 	 * @author Vinitha
 	 * @return
 	 */
-	public RestResponse<ResponseModel> deleteScrip(Long MwId, String token) {	
+	public RestResponse<ResponseModel> deleteScrip(Long MwId,String exchange, String token) {	
 		try {
 			if (MwId == null || MwId <= 0 || token == null) 
 				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.INVALID_REQUEST , ErrorCodeConstants.ECMW003);			
 	
 			if(MwId > 15)
-				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.INVALID_ID ,ErrorCodeConstants.ECMW111);	
+				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.INVALID_ID ,ErrorCodeConstants.ECMW111);				
+			
+			final List<String> VALID_OPTIONS = Arrays.asList("BCD","BFO","BSE","CDS","MCX","NCO","NFO","NSE");
+					
+			if( exchange.length()>10 ||!VALID_OPTIONS.stream().anyMatch(validOption -> validOption.equalsIgnoreCase(exchange)))
+				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.INVALID_EXCHANGE , ErrorCodeConstants.ECMW118);
 			
 			PredefinedMwEntity entity = predefinedMwRepository.findByMwId(MwId);
 			
 			if (entity == null) 
 				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.INVALID_REQUEST , ErrorCodeConstants.ECMW003);
 			
-			PredefinedMwScripsEntity entity1 = predefinedMwScripRepository.findByToken(token);
+			PredefinedMwScripsEntity entity1 = predefinedMwScripRepository.findByExchangeAndToken(exchange,token);
 			
 			if (entity1 == null) 
         		return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.NO_MW , ErrorCodeConstants.ECMW005);
 			else
-				predefinedMwScripRepository.deleteByToken(token);
+				predefinedMwScripRepository.deleteByExchangeAndToken(exchange,token);
 															
-			PredefinedMwScripsEntity deletedEntity = predefinedMwScripRepository.findByToken(token);
+			PredefinedMwScripsEntity deletedEntity = predefinedMwScripRepository.findByExchangeAndToken(exchange,token);
 			if (deletedEntity == null) 
 				return prepareResponse.prepareMWSuccessResponseObject2(ErrorMessageConstants.SUCCESS_DEL_SCRIP , ErrorCodeConstants.ECMW024);
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -436,7 +441,7 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 	 * @author Vinitha	
 	 *@return
 	 */
-	public RestResponse<ResponseModel> sortScrip(Long MwId, String MwName,Long id,int sortOrder) {
+	public RestResponse<ResponseModel> sortScrip(Long MwId, String MwName,Long id,Long sortOrder) {
 		try {
 			if (MwId == null || MwId <= 0 || MwName ==null || id == null || sortOrder <=0 || id <=0) 
 				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.INVALID_REQUEST , ErrorCodeConstants.ECMW003);	
@@ -458,9 +463,9 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 			if (entity == null) 
 				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.NO_MW , ErrorCodeConstants.ECMW003);
 			
-//			PredefinedMwScripsEntity data2 = predefinedMwScripRepository.findByIdAndSortOrder(id , sortOrder);
-//			if(data2 != null)
-//				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.EXISTING_SORTORDER , ErrorCodeConstants.ECMW125);
+			PredefinedMwScripsEntity data2 = predefinedMwScripRepository.findByMwIdAndSortOrder(MwId , sortOrder);
+			if(data2 != null)
+				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.EXISTING_SORTORDER , ErrorCodeConstants.ECMW125);
 							
 			boolean scripFound = false;
 			for (PredefinedMwScripsEntity scripsEntity : entity.getScrips()) {
@@ -502,9 +507,9 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 			if(pDto.getSortOrder() > 30 )
 				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.INVALID_ORDER ,ErrorCodeConstants.ECMW113);	
 		
-			final List<String> VALID_OPTIONS = Arrays.asList("BCD","bcd","BFO","bfo","BSE","bse","CDS","cds","MCX","NCO","nco","NFO","nfo","NSE","nse");
-					
-			if( pDto.getExchange().length()>10 || (!VALID_OPTIONS.contains(pDto.getExchange())))
+			final List<String> VALID_OPTIONS = Arrays.asList("BCD","BFO","BSE","CDS","MCX","NCO","NFO","NSE");
+			
+			if( pDto.getExchange().length()>10 ||!VALID_OPTIONS.stream().anyMatch(validOption -> validOption.equalsIgnoreCase(pDto.getExchange())))
 				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.INVALID_EXCHANGE , ErrorCodeConstants.ECMW118);
 			
 			if( pDto.getToken().length()>10)
@@ -518,7 +523,7 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 			if(data != null)
 				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.EXISTING_SCRIP , ErrorCodeConstants.ECMW123);
 			
-			PredefinedMwScripsEntity data2 = predefinedMwScripRepository.findByMwIdAndSortOrder(pDto.getMwId() , pDto.getSortOrder());
+			PredefinedMwScripsEntity data2 = predefinedMwScripRepository.findByMwIdAndSortOrder(pDto.getMwId() ,pDto.getSortOrder());
 			if(data2 != null)
 				return prepareResponse.prepareFailedResponseObj(ErrorMessageConstants.EXISTING_SORTORDER , ErrorCodeConstants.ECMW125);
 							
