@@ -536,7 +536,8 @@ public class MarketWatchService implements IMarketWatchService {
 					JSONObject finalOutput = new JSONObject();
 			        finalOutput.put("scrip", scripDetails);
 
-					return prepareResponse.prepareSuccessResponseObject(finalOutput);
+			        return prepareResponse.prepareSuccessResponseWithMessage(finalOutput, AppConstants.SUCCESS_STATUS,
+							false);
 				} else {
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW104,AppConstants.INVALID_PARAMETER);
 
@@ -602,19 +603,23 @@ public class MarketWatchService implements IMarketWatchService {
 				result = pDto.get(itr);
 				String exch = result.getExch().toUpperCase().trim();
 				String token = result.getToken().trim();
-				System.out.println(exch + "_" + token);
-				if (HazelCacheController.getInstance().getContractMaster().get(exch + "_" + token) != null) {
+				String exchangeSegment = commonUtils
+						.getExchangeSegmentNameIIFL(result.getExch().trim().toUpperCase());
+				String codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+				
+				System.out.println(codifiExchange + "_" + token);
+				if (HazelCacheController.getInstance().getContractMaster().get(codifiExchange + "_" + token) != null) {
 					ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-							.get(exch + "_" + token);
-					System.out.println(
-							exch + "_" + token + "Response >>>>>>>" + masterData.getExpiry() + masterData.getWeekTag());
+							.get(codifiExchange + "_" + token);
 					CacheMwDetailsModel fResult = new CacheMwDetailsModel();
 					fResult.setSymbol(masterData.getSymbol());
 					fResult.setTradingSymbol(masterData.getTradingSymbol());
 					fResult.setFormattedInsName(masterData.getFormattedInsName());
 					fResult.setToken(masterData.getToken());
-					fResult.setExchange(masterData.getExch());
-					fResult.setSegment(masterData.getSegment());
+					String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
+					fResult.setExchange(exchangeIifl);
+					String segmentIifl = commonUtils.getExchangeName(masterData.getSegment());
+					fResult.setSegment(segmentIifl);
 					fResult.setExpiry(masterData.getExpiry() == null ? null : masterData.getExpiry());
 					fResult.setSortOrder(result.getSortingOrder());
 					fResult.setPdc(masterData.getPdc());
@@ -748,13 +753,16 @@ public class MarketWatchService implements IMarketWatchService {
 			MarketWatchScripDetailsDTO resultDto = new MarketWatchScripDetailsDTO();
 			String exch = model.getExchange();
 			String token = model.getToken();
-			if (HazelCacheController.getInstance().getContractMaster().get(exch + "_" + token) != null) {
+			String exchangeSegment = commonUtils
+					.getExchangeSegmentNameIIFL(model.getExchange().trim().toUpperCase());
+			String codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+			if (HazelCacheController.getInstance().getContractMaster().get(codifiExchange + "_" + token) != null) {
 				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-						.get(exch + "_" + token);
+						.get(codifiExchange + "_" + token);
 
 				resultDto.setUserId(userId);
 				resultDto.setMwId(mwId);
-				resultDto.setEx(exch);
+				resultDto.setEx(codifiExchange);
 				resultDto.setToken(token);
 				resultDto.setTradingSymbol(masterData.getTradingSymbol());
 				resultDto.setEx(masterData.getExch());
@@ -1084,12 +1092,17 @@ public class MarketWatchService implements IMarketWatchService {
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,AppConstants.INVALID_TOKEN);
 			}
 
+			String exchangeSegment = commonUtils
+					.getExchangeSegmentNameIIFL(model.getExch().trim().toUpperCase());
+			String codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+			
 			if (HazelCacheController.getInstance().getContractMaster()
-					.get(model.getExch() + "_" + model.getToken()) != null) {
+					.get(codifiExchange + "_" + model.getToken()) != null) {
 				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-						.get(model.getExch() + "_" + model.getToken());
+						.get(codifiExchange + "_" + model.getToken());
 				SecurityInfoRespModel infoResult = new SecurityInfoRespModel();
-				infoResult.setExchange(masterData.getExch());
+				String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
+				infoResult.setExchange(exchangeIifl);
 				infoResult.setToken(masterData.getToken());
 				infoResult.setTradingSymbol(masterData.getTradingSymbol());
 				infoResult.setLotSize(masterData.getLotSize());

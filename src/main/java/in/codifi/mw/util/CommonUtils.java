@@ -19,7 +19,8 @@ public class CommonUtils {
 	
 	public static boolean isValidExch(String input) {
 		// Use a regex to check if the input matches any of the valid values
-		return input.matches("BCD|BFO|BSE|CDS|MCX|NFO|NSE|NCO");
+//		return input.matches("BCD|BFO|BSE|CDS|MCX|NFO|NSE|NCO");
+		return input.matches("BSECURR|BSEFO|BSEEQ|NSECURR|MCXCOMM|NSEFO|NSEEQ|NSECOMM");
 	}
 
 	public boolean checkThisIsTheNumber(String token) {
@@ -72,6 +73,43 @@ public class CommonUtils {
 		return exch;
 	}
 
+	/**
+	 * Method to find the exchange segment for the given exchange
+	 * 
+	 * @author Gowrisankar
+	 * @param exch
+	 * @return
+	 */
+	public String getExchangeSegmentNameIIFL(String exch) {
+		String exchSegment = "";
+		try {
+			exch = exch.trim();
+			if (exch.equalsIgnoreCase("NSEFO")) {
+				exchSegment = "nse_fo";
+			} else if (exch.equalsIgnoreCase("NSECOMM")) {
+				exchSegment = "nse_com";
+			} else if (exch.equalsIgnoreCase("NSEEQ")) {
+				exchSegment = "nse_cm";
+			} else if (exch.equalsIgnoreCase("NSECURR")) {
+				exchSegment = "cde_fo";
+			} else if (exch.equalsIgnoreCase("NCDEXCOMM")) {
+				exchSegment = "ncx_fo";
+			} else if (exch.equalsIgnoreCase("MCXCOMM")) {
+				exchSegment = "mcx_fo";
+			} else if (exch.equalsIgnoreCase("BSEFO")) {
+				exchSegment = "bse_fo";
+			} else if (exch.equalsIgnoreCase("BSECURR")) {
+				exchSegment = "bcs_fo";
+			} else if (exch.equalsIgnoreCase("BSECOMM")) {
+				exchSegment = "bse_com";
+			} else if (exch.equalsIgnoreCase("BSEEQ")) {
+				exchSegment = "bse_cm";
+			}
+		} catch (Exception e) {
+			return exchSegment;
+		}
+		return exchSegment;
+	}
 	public String getExchangeNameIIFL(String exchSeg) {
 		String exch = "";
 		try {
