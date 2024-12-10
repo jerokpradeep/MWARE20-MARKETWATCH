@@ -143,19 +143,19 @@ public class ScripSearchEntityManager {
 				ScripSearchResp model = new ScripSearchResp();
 				String exchange = String.valueOf(object[0]);
 				String segment = String.valueOf(object[1]);
-				String groupName = String.valueOf(object[2]);
+				String groupName = object[2] == null ? "" :String.valueOf(object[2]);
 				String resSymbol = String.valueOf(object[3]);
 				String token = String.valueOf(object[4]);
 				String insType = String.valueOf(object[5]);
 				String formattedInsName = String.valueOf(object[6]);
-				String weekTag = String.valueOf(object[7]);
+				String weekTag = object[7] == null ? "" : String.valueOf(object[7]);
 				String companyName = String.valueOf(object[8]);
 				if (object[9] != null) {
 					Date expiry = (Date) object[9];
 					model.setExpiry(expiry);
 				}
-				String optiontype = String.valueOf(object[10]);
-				String isin = String.valueOf(object[11]);
+				String optionType = object[10] == null ? "" : String.valueOf(object[10]);
+				String isin = object[11] == null ? "" : String.valueOf(object[11]);
 
 				String exchangeIifl = commonUtils.getExchangeNameIIFL(exchange);
 				model.setExchange(exchangeIifl);
@@ -163,16 +163,13 @@ public class ScripSearchEntityManager {
 				model.setSegment(segmentIifl);
 				model.setToken(token);
 				model.setFormattedInsName(formattedInsName);
-//				model.setWeekTag(weekTag);
-				model.setWeekTag(weekTag == null ? "" : weekTag);
+				model.setWeekTag(weekTag);
 				model.setCompanyName(companyName);
-//				model.setOptionType(optiontype);
-				model.setWeekTag(optiontype == null ? "" : optiontype);
-				model.setIsFnOAvailable(exchange.equalsIgnoreCase("NFO") ? "true" : "false");
+				model.setOptionType(optionType);
+				model.setFnOAvailable(exchange.equalsIgnoreCase("NFO") ? true : false);
 
 				model.setSeries(groupName);
-//				model.setIsin(isin);
-				model.setIsin(isin == null ? "" :isin);
+				model.setIsin(isin);
 
 				if (exchange.equalsIgnoreCase("NSE")) {
 					model.setSymbol(resSymbol + "-" + groupName);
