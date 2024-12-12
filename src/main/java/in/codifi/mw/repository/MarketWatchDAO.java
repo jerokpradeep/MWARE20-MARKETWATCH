@@ -9,12 +9,17 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.sql.DataSource;
 
+import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.mw.cache.HazelCacheController;
 import in.codifi.mw.entity.MarketWatchNameDTO;
 import in.codifi.mw.entity.MarketWatchScripDetailsDTO;
 import in.codifi.mw.model.CacheMwDetailsModel;
+import in.codifi.mw.model.IndexModel;
 import in.codifi.mw.model.MwRequestModel;
+import in.codifi.mw.util.CommonUtils;
 import io.quarkus.logging.Log;
 
 /**
@@ -23,13 +28,20 @@ import io.quarkus.logging.Log;
  */
 @ApplicationScoped
 public class MarketWatchDAO {
-	
+
 	@Inject
 	DataSource dataSource;
 
+	@Named("mw")
+	@Inject
+	DataSource entityManager;
+
+	@Inject
+	CommonUtils commonUtils;
+
 	/**
 	 * Method to find mw name by user id
-	 *  
+	 * 
 	 * @author Vicky
 	 * @param pUserId
 	 * @return
@@ -49,7 +61,6 @@ public class MarketWatchDAO {
 			if (rSet != null) {
 				while (rSet.next()) {
 					MarketWatchNameDTO model = new MarketWatchNameDTO();
-					model.setId(rSet.getLong("id"));
 					model.setMwName(rSet.getString("mw_name"));
 					model.setUserId(rSet.getString("user_id"));
 					model.setMwId(rSet.getInt("mw_id"));
@@ -77,7 +88,7 @@ public class MarketWatchDAO {
 
 	/**
 	 * Method to get MarketWatch By UserId
-	 *  
+	 * 
 	 * @author Vicky
 	 * @param newMwList
 	 */
@@ -153,13 +164,13 @@ public class MarketWatchDAO {
 					model.setMwName(rSet.getString("mw_name"));
 					model.setUserId(rSet.getString("user_id"));
 					model.setMwId(rSet.getInt("mw_id"));
-					model.setExchange(rSet.getString("exch"));
-					model.setSegment(rSet.getString("exch_seg"));
+					model.setExchange(commonUtils.getExchangeNameIIFL(rSet.getString("exch")));
+					model.setSegment(commonUtils.getExchangeName(rSet.getString("exch_seg")));
 					model.setToken(rSet.getString("token"));
 					model.setSymbol(rSet.getString("symbol"));
 					model.setTradingSymbol(rSet.getString("trading_symbol"));
 					model.setFormattedInsName(rSet.getString("formatted_ins_name"));
-					model.setExpiry(rSet.getDate("expiry_date"));
+					model.setExpiry(rSet.getDate("expiry_date") != null ? rSet.getDate("expiry_date").toString() : "");
 					model.setPdc(rSet.getString("pdc"));
 					model.setSortOrder(rSet.getInt("sorting_order"));
 					response.add(model);
@@ -183,7 +194,7 @@ public class MarketWatchDAO {
 		}
 		return response;
 	}
-	
+
 //	public List<CacheMwDetailsModel> getMarketWatchByUserId(String userId) {
 //		List<CacheMwDetailsModel> response = new ArrayList<>();
 //
@@ -268,6 +279,96 @@ public class MarketWatchDAO {
 		return isSuccessfull;
 	}
 
+	public String getMWName(int mwId, String userId) {
+		String mwName = null;
+		PreparedStatement pStmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		try {
+			// Establishing the connection
+			conn = dataSource.getConnection();
+
+			// Corrected SQL query with proper FROM clause
+			String query = "SELECT mw_name FROM tbl_market_watch_list WHERE mw_id = ? AND user_id = ?";
+			pStmt = conn.prepareStatement(query);
+
+			// Setting the parameters
+			int paramPos = 1;
+			pStmt.setInt(paramPos++, mwId);
+			pStmt.setString(paramPos++, userId);
+
+			// Execute query and get results
+			rs = pStmt.executeQuery();
+
+			// If there's a result, assign the mw_name to mwName
+			if (rs.next()) {
+				mwName = rs.getString("mw_name");
+			}
+		} catch (Exception e) {
+			e.printStackTrace(); // Log the exception (optional, if using a logger)
+			Log.error(e.getMessage());
+		} finally {
+			try {
+				// Ensure resources are closed
+				if (rs != null) {
+					rs.close();
+				}
+				if (pStmt != null) {
+					pStmt.close();
+				}
+				if (conn != null) {
+					conn.close();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return mwName; // Return the mw_name or null if not found
+	}
+
+	public boolean changeMwisDefaultStatus(int mwId, String userId, boolean status) {
+		PreparedStatement pStmt = null;
+		Connection conn = null;
+		try {
+			// Establishing the connection
+			conn = dataSource.getConnection();
+
+			// SQL query to update is_default based on the mw_id and user_id
+			String query = "UPDATE tbl_market_watch_list SET is_default = ? WHERE mw_id = ? AND user_id = ?";
+			pStmt = conn.prepareStatement(query);
+
+			// Setting the parameters
+			int paramPos = 1;
+			pStmt.setInt(paramPos++, status ? 1 : 0); // Set 1 for true, 0 for false
+			pStmt.setInt(paramPos++, mwId);
+			pStmt.setString(paramPos++, userId);
+
+			// Execute the update query and check how many rows were affected
+			int rowsAffected = pStmt.executeUpdate(); // Execute update
+
+			// Return true if the update was successful (1 or more rows affected), false
+			// otherwise
+			return rowsAffected > 0;
+
+		} catch (Exception e) {
+			e.printStackTrace(); // Log the exception (optional, if using a logger)
+			Log.error(e.getMessage());
+		} finally {
+			try {
+				// Ensure resources are closed
+				if (pStmt != null) {
+					pStmt.close();
+				}
+				if (conn != null) {
+					conn.close();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false; // Return false if update fails
+	}
+
 	/**
 	 * @param userId
 	 * @param mwId
@@ -281,7 +382,7 @@ public class MarketWatchDAO {
 		ResultSet rSet = null;
 		try {
 			conn = dataSource.getConnection();
-			String query = "SELECT token,exch,(case when sorting_order is null then 0 else sorting_order end) as sorting_order,id from tbl_market_watch_list where user_id = ? and mw_id = ?";
+			String query = "SELECT token,exch,(case when sorting_order is null then 0 else sorting_order end) as sorting_order,id from tbl_market_watch_scrips where user_id = ? and mw_id = ?";
 			pStmt = conn.prepareStatement(query);
 			int paramPos = 1;
 			pStmt.setString(paramPos++, userId);
@@ -470,31 +571,31 @@ public class MarketWatchDAO {
 		return resp;
 	}
 
-
 	/**
 	 * @param pDto
 	 * @param userId
 	 * @return
 	 */
-	public long selectByUserId(MwRequestModel pDto, String userId) {
-		long response = 0;
+	public String selectByUserId(MwRequestModel pDto, String userId) {
+		String response = "";
 
 		PreparedStatement pStmt = null;
 		Connection conn = null;
 		ResultSet rSet = null;
 		try {
 			conn = dataSource.getConnection();
-			String query = "SELECT id from tbl_market_watch_scrips  WHERE mw_id = ? and user_id = ? and token = ? and exch = ?";
+			String query = "SELECT id,symbol from tbl_market_watch_scrips  WHERE mw_id = ? and user_id = ? and token = ? and exch = ?";
 			pStmt = conn.prepareStatement(query);
 			int paramPos = 1;
 			pStmt.setInt(paramPos++, pDto.getMwId());
 			pStmt.setString(paramPos++, userId);
 			pStmt.setString(paramPos++, pDto.getScripData().get(0).getToken().trim());
-			pStmt.setString(paramPos++, pDto.getScripData().get(0).getExch().trim());
+			pStmt.setString(paramPos++,
+					commonUtils.getExchangeNameContract(pDto.getScripData().get(0).getExchange().trim()));
 			rSet = pStmt.executeQuery();
 			if (rSet != null) {
 				while (rSet.next()) {
-					response = rSet.getLong("id");
+					response = rSet.getString("symbol");
 					System.out.println(response);
 				}
 			}
@@ -556,6 +657,120 @@ public class MarketWatchDAO {
 			}
 		}
 		return response;
+	}
+
+	public List<IndexModel> getIndicesList() {
+		List<IndexModel> response = new ArrayList<>();
+
+		PreparedStatement pStmt = null;
+		Connection conn = null;
+		ResultSet rSet = null;
+		try {
+			conn = entityManager.getConnection();
+			String query = "SELECT pdc,exch,exchange_segment,symbol FROM tbl_global_contract_master_details where instrument_type ='INDEX' ";
+			pStmt = conn.prepareStatement(query);
+			rSet = pStmt.executeQuery();
+			if (rSet != null) {
+				while (rSet.next()) {
+					IndexModel model = new IndexModel();
+					model.setClosingIndex(rSet.getString("pdc"));
+					String exchangeIifl = commonUtils.getExchangeNameIIFL(rSet.getString("exch"));
+					model.setExchange(exchangeIifl);
+					String segmentIifl = commonUtils.getExchangeName(rSet.getString("exchange_segment"));
+					model.setSegment(segmentIifl);
+					model.setIndexName(rSet.getString("symbol"));
+					model.setIndexValue(rSet.getString("pdc"));
+					model.setIndiceID(rSet.getString("pdc"));
+					response.add(model);
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		} finally {
+			try {
+				if (rSet != null)
+					rSet.close();
+				if (pStmt != null)
+					pStmt.close();
+				if (conn != null)
+					conn.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return response;
+	}
+
+	public void loadContract() {
+
+		PreparedStatement pStmt = null;
+		Connection conn = null;
+		ResultSet rSet = null;
+		try {
+			// Get database connection
+			conn = entityManager.getConnection();
+
+			// SQL query to fetch data from the table
+			String query = "SELECT * FROM tbl_global_contract_master_details where exch='NSE'";
+
+			// Prepare the SQL statement
+			pStmt = conn.prepareStatement(query);
+
+			// Execute the query and get the result set
+			rSet = pStmt.executeQuery();
+
+			// Check if the result set has any data
+			if (rSet != null) {
+				while (rSet.next()) {
+					// Create a new model object for each row
+					ContractMasterModel model = new ContractMasterModel();
+					// Set the fields of the model using values from the ResultSet
+					model.setAlterToken(rSet.getString("alter_token"));
+					model.setCompanyName(rSet.getString("company_name"));
+					model.setExch(rSet.getString("exch"));
+					model.setExpiry(rSet.getDate("expiry_date"));
+					model.setFormattedInsName(rSet.getString("formatted_ins_name"));
+					model.setFreezQty(rSet.getString("freeze_qty"));
+					model.setGroupName(rSet.getString("group_name"));
+					model.setInstrumentName(rSet.getString("instrument_name"));
+					model.setInsType(rSet.getString("instrument_type"));
+					model.setIsin(rSet.getString("isin"));
+					model.setLotSize(rSet.getString("lot_size"));
+					model.setOptionType(rSet.getString("option_type"));
+					model.setPdc(rSet.getString("pdc"));
+					model.setSegment(rSet.getString("exchange_segment"));
+					model.setStrikePrice(rSet.getString("strike_price"));
+					model.setSymbol(rSet.getString("symbol"));
+					model.setTickSize(rSet.getString("tick_size"));
+					model.setToken(rSet.getString("token"));
+					model.setTradingSymbol(rSet.getString("trading_symbol"));
+					model.setWeekTag(rSet.getString("week_tag"));
+					System.out.println(rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token"));
+					// Save the model in HazelCache
+					HazelCacheController.getInstance().getContractMaster()
+							.put(rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token"), model);
+				}
+			}
+
+		} catch (Exception e) {
+			// Log the exception
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		} finally {
+			// Clean up resources
+			try {
+				if (rSet != null)
+					rSet.close();
+				if (pStmt != null)
+					pStmt.close();
+				if (conn != null)
+					conn.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 }

@@ -4,6 +4,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Path;
 
 import org.jboss.resteasy.reactive.RestResponse;
+import org.json.simple.JSONObject;
 
 import in.codifi.mw.controller.spec.IMarketWatchController;
 import in.codifi.mw.model.ClinetInfoModel;
@@ -12,6 +13,7 @@ import in.codifi.mw.model.MwIndicesModel;
 import in.codifi.mw.model.MwRequestModel;
 import in.codifi.mw.model.ResponseModel;
 import in.codifi.mw.model.SecurityInfoReqModel;
+import in.codifi.mw.repository.MarketWatchDAO;
 import in.codifi.mw.service.ValidateRequestService;
 import in.codifi.mw.service.spec.IMarketWatchService;
 import in.codifi.mw.util.AppConstants;
@@ -24,16 +26,19 @@ import io.quarkus.logging.Log;
 public class MarketWatchController implements IMarketWatchController {
 
 	@Inject
-	ValidateRequestService validateRequestService;
+	ValidateRequestService validFateRequestService;
 	@Inject
 	IMarketWatchService iMarketWatchService;
 	@Inject
 	PrepareResponse prepareResponse;
 	@Inject
 	AppUtil appUtil;
+	@Inject
+	MarketWatchDAO dao;
 
 	@Override
 	public String test() {
+		dao.loadContract();
 		return "MarketWatch Module is working";
 	}
 
@@ -71,7 +76,7 @@ public class MarketWatchController implements IMarketWatchController {
 	 */
 	@Override
 	public RestResponse<ResponseModel> renameMarketWatch(MwRequestModel pDto) {
-		
+
 		/*
 		 * Check the client info, get the user with the client info
 		 */
@@ -96,7 +101,7 @@ public class MarketWatchController implements IMarketWatchController {
 
 	@Override
 	public RestResponse<ResponseModel> sortMwScrips(MwRequestModel pDto) {
-		
+
 		/*
 		 * Check the client info, get the user with the client info
 		 */
@@ -127,7 +132,7 @@ public class MarketWatchController implements IMarketWatchController {
 	 */
 	@Override
 	public RestResponse<ResponseModel> addscrip(MwRequestModel pDto) {
-		
+
 		/*
 		 * Check the client info, get the user with the client info
 		 */
@@ -140,7 +145,6 @@ public class MarketWatchController implements IMarketWatchController {
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
 		return iMarketWatchService.addscrip(pDto, info.getUcc());
-		
 
 //		boolean isValid = validateRequestService.isValidUser(pDto);
 //		if (isValid) {
@@ -159,7 +163,7 @@ public class MarketWatchController implements IMarketWatchController {
 	 */
 	@Override
 	public RestResponse<ResponseModel> deletescrip(MwRequestModel pDto) {
-		
+
 		/*
 		 * Check the client info, get the user with the client info
 		 */
@@ -172,8 +176,7 @@ public class MarketWatchController implements IMarketWatchController {
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
 		return iMarketWatchService.deletescrip(pDto, info.getUcc());
-		
-		
+
 //		boolean isValid = validateRequestService.isValidUser(pDto);
 //		if (isValid) {
 //			return iMarketWatchService.deletescrip(pDto);
@@ -189,8 +192,8 @@ public class MarketWatchController implements IMarketWatchController {
 	 * @author Gowrisankar
 	 */
 	@Override
-	public RestResponse<ResponseModel> getAllMwScrips(MwRequestModel pDto) {
-		
+	public RestResponse<ResponseModel> getAllMwScrips() {
+
 		/*
 		 * Check the client info, get the user with the client info
 		 */
@@ -202,7 +205,7 @@ public class MarketWatchController implements IMarketWatchController {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
-		return iMarketWatchService.getAllMwScrips(pDto, info.getUcc());
+		return iMarketWatchService.getAllMwScrips(info.getUcc());
 
 //		System.out.println("getAllMwScrips - controller");
 //		boolean isValid = validateRequestService.isValidUser(pDto);
@@ -219,7 +222,7 @@ public class MarketWatchController implements IMarketWatchController {
 	 * 
 	 */
 	@Override
-	public RestResponse<ResponseModel> getIndices(MwIndicesModel pDto) {
+	public JSONObject getIndices(MwIndicesModel pDto) {
 
 //		boolean isValid = validateRequestService.isValidUser(pDto);
 //		if (isValid) {
@@ -245,7 +248,7 @@ public class MarketWatchController implements IMarketWatchController {
 //		}
 		return iMarketWatchService.getcommodityContarct(pDto);
 	}
-	
+
 	@Override
 	public RestResponse<ResponseModel> getSecurityInfo(SecurityInfoReqModel model) {
 
@@ -256,7 +259,7 @@ public class MarketWatchController implements IMarketWatchController {
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
-		} 
+		}
 		return iMarketWatchService.getSecurityInfo(model, info);
 	}
 }

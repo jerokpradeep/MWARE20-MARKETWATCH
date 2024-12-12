@@ -3,56 +3,27 @@ package in.codifi.mw.model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Vicky
  *
  */
+@Getter
+@Setter
 public class MwRequestModel {
-
+	@JsonProperty(value = "predefined")
 	private boolean predefined;
-	private String userId;
+	@JsonProperty(value = "mwId")
 	private int mwId;
+	@JsonProperty(value = "mwName")
 	private String mwName;
+	@JsonProperty(value = "isDefault")
+	private boolean isDefault;
+	@JsonProperty(value = "scripData")
 	private List<MwScripModel> scripData;
-	
-	public boolean isPredefined() {
-		return predefined;
-	}
 
-	public void setPredefined(boolean predefined) {
-		this.predefined = predefined;
-	}
-
-	public String getUserId() {
-		return userId;
-	}
-
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
-
-	public int getMwId() {
-		return mwId;
-	}
-
-	public void setMwId(int mwId) {
-		this.mwId = mwId;
-	}
-
-	public String getMwName() {
-		return mwName;
-	}
-
-	public void setMwName(String mwName) {
-		this.mwName = mwName;
-	}
-
-	public List<MwScripModel> getScripData() {
-		return scripData;
-	}
-
-	public void setScripData(List<MwScripModel> scripData) {
-		this.scripData = scripData;
-	}
 }

@@ -5,13 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.ws.rs.core.Response.Status;
 
 import org.jboss.resteasy.reactive.RestResponse;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
-import in.codifi.mw.model.MWResponseModel;
+import in.codifi.mw.model.MwResultModel;
 import in.codifi.mw.model.ResponseModel;
-import javax.ws.rs.core.Response.Status;
 
 @ApplicationScoped
 public class PrepareResponse {
@@ -56,6 +57,22 @@ public class PrepareResponse {
 		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
 
+	public RestResponse<MwResultModel> prepareSuccessResultObject(Object resultData) {
+		MwResultModel responseObject = new MwResultModel();
+		responseObject.setIndices(getResult(resultData));
+		responseObject.setStatus(AppConstants.STATUS_OK);
+		responseObject.setMessage(AppConstants.SUCCESS_STATUS);
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
+	}
+
+	public RestResponse<ResponseModel> prepareSuccessResponsewithObject(Object resultData) {
+		ResponseModel responseObject = new ResponseModel();
+		responseObject.setResult(resultData);
+		responseObject.setStatus(AppConstants.STATUS_OK);
+		responseObject.setMessage(AppConstants.SUCCESS_STATUS);
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
+	}
+
 	/**
 	 * Common method to Success Response
 	 *
@@ -79,7 +96,7 @@ public class PrepareResponse {
 	 * @param resultData
 	 * @return
 	 */
-	
+
 	public RestResponse<ResponseModel> prepareSuccessMessage(String message) {
 		ResponseModel responseObject = new ResponseModel();
 //		responseObject.setResult(AppConstants.EMPTY_ARRAY);
@@ -87,15 +104,14 @@ public class PrepareResponse {
 		responseObject.setMessage(message);
 		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
-	
-	
+
 	public RestResponse<ResponseModel> prepareMWSuccessResponseObject(Object resultData) {
 		ResponseModel responseObject = new ResponseModel();
 		responseObject.setStatus(AppConstants.STATUS_OK);
 		responseObject.setMessage(AppConstants.SUCCESS_STATUS);
 		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
-	
+
 	public RestResponse<ResponseModel> prepareMWSuccessResponseString(String resultData) {
 		ResponseModel responseObject = new ResponseModel();
 		responseObject.setStatus(AppConstants.STATUS_OK);
@@ -104,38 +120,36 @@ public class PrepareResponse {
 	}
 
 	public RestResponse<ResponseModel> prepareFailedResponseObj(String message, String status) {
-	    // Create the inner result object
-	    ResponseModel result = new ResponseModel();
-	    result.setStatus(status);
-	    result.setMessage(message);
+		// Create the inner result object
+		ResponseModel result = new ResponseModel();
+		result.setStatus(status);
+		result.setMessage(message);
 
-	    // Create the main response object
-	    ResponseModel responseObject = new ResponseModel();
-	    responseObject.setStatus(" NOT Ok");
-	    responseObject.setMessage("Failed");
-	    responseObject.setResult(result);
+		// Create the main response object
+		ResponseModel responseObject = new ResponseModel();
+		responseObject.setStatus(" NOT Ok");
+		responseObject.setMessage("Failed");
+		responseObject.setResult(result);
 
-	    return RestResponse.ResponseBuilder
-	        .create(Status.OK, responseObject)
-	        .build();
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
+
 	public RestResponse<ResponseModel> prepareMWSuccessResponseObject2(String message, String status) {
-	    // Create the inner result object
-	    ResponseModel result = new ResponseModel();
-	    result.setStatus(status);
-	    result.setMessage(message);
+		// Create the inner result object
+		ResponseModel result = new ResponseModel();
+		result.setStatus(status);
+		result.setMessage(message);
 
-	    // Create the main response object
-	    ResponseModel responseObject = new ResponseModel();
-	    responseObject.setStatus("Ok");
-	    responseObject.setMessage("Success");
-	    responseObject.setResult(result);
+		// Create the main response object
+		ResponseModel responseObject = new ResponseModel();
+		responseObject.setStatus("Ok");
+		responseObject.setMessage("Success");
+		responseObject.setResult(result);
 
-	    return RestResponse.ResponseBuilder
-	        .create(Status.OK, responseObject)
-	        .build();
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
-	public RestResponse<ResponseModel> prepareSuccessResponseObject(Object resultData , String status) {
+
+	public RestResponse<ResponseModel> prepareSuccessResponseObject(Object resultData, String status) {
 		ResponseModel responseObject = new ResponseModel();
 		responseObject.setResult(getResult(resultData));
 		responseObject.setStatus("");
@@ -144,21 +158,28 @@ public class PrepareResponse {
 		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
 
-	
 	public RestResponse<ResponseModel> prepareMWFailedResponseString(String resultData) {
 		ResponseModel responseObject = new ResponseModel();
 		responseObject.setStatus(AppConstants.STATUS_OK);
 		responseObject.setMessage(resultData);
 		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
-	
-	public RestResponse<ResponseModel> prepareMWFailedResponse(String code,String message) {
+
+	public RestResponse<ResponseModel> prepareMWFailedResponse(String code, String message) {
 		ResponseModel responseObject = new ResponseModel();
 		responseObject.setStatus(code);
 		responseObject.setMessage(message);
 		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
 	}
-	
+
+	public RestResponse<ResponseModel> prepareMWFailedwithEmtyResult(String code, String message, Object resultData) {
+		ResponseModel responseObject = new ResponseModel();
+		responseObject.setStatus(code);
+		responseObject.setMessage(message);
+		responseObject.setResult(resultData);
+		return RestResponse.ResponseBuilder.create(Status.OK, responseObject).build();
+	}
+
 	public RestResponse<ResponseModel> prepareSuccessResponseWithMessage(Object resultData, String message,
 			boolean withArray) {
 		ResponseModel responseObject = new ResponseModel();

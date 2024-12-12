@@ -13,6 +13,9 @@ import in.codifi.mw.model.ResponseModel;
 import in.codifi.mw.model.SearchScripReqModel;
 import in.codifi.mw.service.spec.ScripsServiceSpecs;
 import in.codifi.mw.util.AppConstants;
+import in.codifi.mw.util.CommonUtils;
+import in.codifi.mw.util.ErrorCodeConstants;
+import in.codifi.mw.util.ErrorMessageConstants;
 import in.codifi.mw.util.PrepareResponse;
 import in.codifi.mw.util.StringUtil;
 
@@ -28,17 +31,29 @@ public class ScripsController implements ScripsControllerSpecs {
 
 	@Inject
 	PrepareResponse prepareResponse;
-	
+	@Inject
+	CommonUtils commonUtils;
+
 	@Override
 	public RestResponse<ResponseModel> getScrips(SearchScripReqModel reqModel) {
 
 		if (StringUtil.isNullOrEmpty(reqModel.getSearchText())) {
-			return prepareResponse.prepareMWFailedResponseString(AppConstants.INVALID_SEARCH_TEXT);
+			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW120,
+					ErrorMessageConstants.INVALID_SEARCHTEXT);
 		}
-		
-		if (reqModel != null && reqModel.getSearchText().trim().length() >= 2) {
+		if (reqModel.getExchange() == null || reqModel.getExchange().length == 0) {
+			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+					ErrorMessageConstants.INVALID_EXCH);
+		}
+		if (!commonUtils.checkExchangeIsValid(reqModel.getExchange())) {
+			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+					ErrorMessageConstants.INVALID_EXCHANGE);
+		}
+		if (reqModel.getSearchText().trim().length() >= 2) {
 			return scripsService.getScrips(reqModel);
 		}
-		return prepareResponse.prepareFailedResponse(AppConstants.ERROR_MIN_CHAR);
+
+		return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW112,
+				ErrorMessageConstants.ERROR_MIN_CHAR);
 	}
 }

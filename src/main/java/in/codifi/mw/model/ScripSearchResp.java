@@ -6,6 +6,8 @@ package in.codifi.mw.model;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,16 +20,29 @@ import lombok.Setter;
 public class ScripSearchResp implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	@JsonProperty(value = "exchange")
 	private String exchange = "";
-	private String segment = ""; 
+	@JsonProperty(value = "segment")
+	private String segment = "";
+	@JsonProperty(value = "symbol")
 	private String symbol = "";
+	@JsonProperty(value = "token")
 	private String token = "";
+	@JsonProperty(value = "formattedInsName")
 	private String formattedInsName = "";
+	@JsonProperty(value = "weekTag")
 	private String weekTag = "";
+	@JsonProperty(value = "companyName")
 	private String companyName = "";
-	private Date expiry;
-	private String optionType = "";
+	@JsonProperty(value = "expiry")
+	private String expiry;
+	@JsonProperty(value = "isFnOAvailable")
 	private boolean isFnOAvailable;
+	@JsonProperty(value = "series")
 	private String series = "";
+	@JsonProperty(value = "isin")
 	private String isin = "";
+	@JsonProperty(value = "optionType")
+	private String optionType = "";
+
 }
