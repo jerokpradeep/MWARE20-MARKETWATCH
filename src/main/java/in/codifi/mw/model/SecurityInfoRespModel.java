@@ -38,9 +38,9 @@ public class SecurityInfoRespModel {
 	@JsonProperty("surveillance")
 	private String surveillance;
 	@JsonProperty("scripIndex")
-	private String scripIndex;
-	@JsonProperty("scripFnO")
-	private String scripFnO;
+	private boolean scripIndex;
+	@JsonProperty("isFnOAvailable")
+	private boolean isFnOAvailable;
 	@JsonProperty("spotData")
 	private SpotData spotData;
 	@JsonProperty("prompt")
@@ -48,7 +48,7 @@ public class SecurityInfoRespModel {
 	@JsonProperty("productLeverage")
 	private ProductLeverage productLeverage;
 	@JsonProperty("badge")
-	private List<Badge> badge;
+	private Badge badge;
 	@JsonProperty("screeners")
 	private List<String> screeners;
 }

@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 public class SecurityInfoReqModel {
 
-	private String exch;
+	private String exchange;
 	private String token;
 	private String segment;
 

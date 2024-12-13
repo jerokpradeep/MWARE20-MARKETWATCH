@@ -4,11 +4,7 @@
 package in.codifi.mw.repository;
 
 import java.math.BigInteger;
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,12 +13,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 import javax.persistence.Query;
-import javax.sql.DataSource;
+import javax.transaction.Transactional;
 
 import in.codifi.mw.model.ScripSearchResp;
-import in.codifi.mw.model.SearchResultModel;
 import in.codifi.mw.model.SearchScripReqModel;
 import in.codifi.mw.util.CommonUtils;
 import in.codifi.mw.util.StringUtil;
@@ -49,18 +43,57 @@ public class ScripSearchEntityManager {
 	@Transactional
 	public List<ScripSearchResp> getScrips(SearchScripReqModel reqModel) {
 		List<ScripSearchResp> respone = new ArrayList<>();
+		List<String> adjustedExchangeList = new ArrayList<>();
 		try {
 
-			String currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage().trim()) ? "1"
+			String currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage()) ? "1"
 					: reqModel.getCurrentPage().trim();
-			String pageSize = StringUtil.isNullOrEmpty(reqModel.getPageSize().trim()) ? "50"
-					: reqModel.getPageSize().trim();
+			String pageSize = StringUtil.isNullOrEmpty(reqModel.getPageSize()) ? "50" : reqModel.getPageSize().trim();
 			int offset = (Integer.parseInt(currentPage) - 1) * Integer.parseInt(pageSize);
 			String symbol = reqModel.getSearchText().trim();
-			String[] exch = reqModel.getExchange();
-			if (exch == null || exch.length <= 0) {
+
+			if (reqModel.getExchange() == null || reqModel.getExchange().length <= 0) {
 				return respone;
 			}
+			String[] exch = null;
+			for (String exch1 : reqModel.getExchange()) {
+				String adjustedExchange = "ALL"; // Default to the original filename
+
+				// Apply the switch statement to adjust the filename
+				switch (exch1.toUpperCase()) {
+				case "NSEEQ":
+					adjustedExchange = "NSE";
+					break;
+				case "NSEFO":
+					adjustedExchange = "NFO";
+					break;
+				case "BSEEQ":
+					adjustedExchange = "BSE";
+					break;
+				case "BSEFO":
+					adjustedExchange = "BFO";
+					break;
+				case "NSECURR":
+					adjustedExchange = "CDS";
+					break;
+				case "BSECURR":
+					adjustedExchange = "BCD";
+					break;
+				case "MCXCOMM":
+					adjustedExchange = "MCX";
+					break;
+				case "NSECOMM":
+					adjustedExchange = "NCO";
+					break;
+				default:
+					// Keep filename as is if no match is found
+					break;
+				}
+				// Add the adjusted filename to the ArrayList
+				adjustedExchangeList.add(adjustedExchange);
+			}
+			// Convert the ArrayList to an array
+			exch = adjustedExchangeList.toArray(new String[0]);
 			if (Arrays.stream(exch).anyMatch("all"::equalsIgnoreCase)) {
 				exch = null;
 			}
@@ -143,17 +176,19 @@ public class ScripSearchEntityManager {
 				ScripSearchResp model = new ScripSearchResp();
 				String exchange = String.valueOf(object[0]);
 				String segment = String.valueOf(object[1]);
-				String groupName = object[2] == null ? "" :String.valueOf(object[2]);
+				String groupName = object[2] == null ? "" : String.valueOf(object[2]);
 				String resSymbol = String.valueOf(object[3]);
 				String token = String.valueOf(object[4]);
 				String insType = String.valueOf(object[5]);
 				String formattedInsName = String.valueOf(object[6]);
 				String weekTag = object[7] == null ? "" : String.valueOf(object[7]);
 				String companyName = String.valueOf(object[8]);
+				Date expiry = null;
 				if (object[9] != null) {
-					Date expiry = (Date) object[9];
-					model.setExpiry(expiry);
+					expiry = (Date) object[9];
 				}
+				model.setExpiry(expiry != null ? expiry.toString() : "");
+
 				String optionType = object[10] == null ? "" : String.valueOf(object[10]);
 				String isin = object[11] == null ? "" : String.valueOf(object[11]);
 
@@ -164,7 +199,7 @@ public class ScripSearchEntityManager {
 				model.setToken(token);
 				model.setFormattedInsName(formattedInsName);
 				model.setWeekTag(weekTag);
-				model.setCompanyName(companyName);
+				model.setCompanyName(StringUtil.isNullOrEmpty(companyName) ? "" : companyName);
 				model.setOptionType(optionType);
 				model.setFnOAvailable(exchange.equalsIgnoreCase("NFO") ? true : false);
 
@@ -199,14 +234,53 @@ public class ScripSearchEntityManager {
 	 */
 	public String getScripsCount(SearchScripReqModel reqModel) {
 		List<ScripSearchResp> respone = new ArrayList<>();
+		List<String> adjustedExchangeList = new ArrayList<>();
 		String totalCount = "0";
 		try {
 
 			String symbol = reqModel.getSearchText().trim();
-			String[] exch = reqModel.getExchange();
-			if (exch == null || exch.length <= 0) {
+			if (reqModel.getExchange() == null || reqModel.getExchange().length <= 0) {
 				return totalCount;
 			}
+			String[] exch = null;
+			for (String exch1 : reqModel.getExchange()) {
+				String adjustedExchange = "ALL"; // Default to the original filename
+
+				// Apply the switch statement to adjust the filename
+				switch (exch1.toUpperCase()) {
+				case "NSEEQ":
+					adjustedExchange = "NSE";
+					break;
+				case "NSEFO":
+					adjustedExchange = "NFO";
+					break;
+				case "BSEEQ":
+					adjustedExchange = "BSE";
+					break;
+				case "BSEFO":
+					adjustedExchange = "BFO";
+					break;
+				case "NSECURR":
+					adjustedExchange = "CDS";
+					break;
+				case "BSECURR":
+					adjustedExchange = "BCD";
+					break;
+				case "MCXCOMM":
+					adjustedExchange = "MCX";
+					break;
+				case "NSECOMM":
+					adjustedExchange = "NCO";
+					break;
+				default:
+					// Keep filename as is if no match is found
+					break;
+				}
+				// Add the adjusted filename to the ArrayList
+				adjustedExchangeList.add(adjustedExchange);
+			}
+			// Convert the ArrayList to an array
+			exch = adjustedExchangeList.toArray(new String[0]);
 			if (Arrays.stream(exch).anyMatch("all"::equalsIgnoreCase)) {
 				exch = null;
 			}
@@ -272,14 +346,16 @@ public class ScripSearchEntityManager {
 			stringQuery = sqlQuery1 + whereClause + " ORDER BY  " + caseCondition + sqlQuery2;
 
 			System.out.println(stringQuery);
-
 			Query query = entityManager.createNativeQuery(stringQuery);
-			/** set param position **/
+
+			// Set the first parameter (active_status = 1)
 			int paramPosition = 1;
 			query.setParameter(paramPosition++, 1);
+
+			// If 'exch' is not null and has values, set parameters for each exchange
 			if (exch != null && exch.length > 0) {
-				for (int i = 0; i < exch.length; i++) {
-					query.setParameter(paramPosition++, exch[i]);
+				for (String exchange : exch) {
+					query.setParameter(paramPosition++, exchange);
 				}
 			}
 
@@ -296,14 +372,17 @@ public class ScripSearchEntityManager {
 //			}
 
 			List<?> result = query.getResultList();
-			for (Object item : result) {
+
+			// Since you're expecting only one result (count), directly extract it
+			if (!result.isEmpty()) {
+				Object item = result.get(0); // Get the first item (should be count)
+
+				// Check if the item is an instance of BigInteger and convert it to String
 				if (item instanceof BigInteger) {
 					totalCount = ((BigInteger) item).toString();
-				} else if (item instanceof Object[]) {
-					Object[] objectArray = (Object[]) item;
-					totalCount = objectArray[0] instanceof BigInteger ? ((BigInteger) objectArray[0]).toString()
-							: String.valueOf(objectArray[0]);
 				} else {
+					// Handle unexpected types (though in your case, it should be BigInteger or
+					// String)
 					totalCount = String.valueOf(item);
 				}
 			}

@@ -8,19 +8,17 @@ import org.json.simple.JSONObject;
 
 import in.codifi.mw.entity.PredefinedMwEntity;
 
-
 /**
  * @author Vicky
  *
  */
 public class MwCacheController {
-	
+
 	private static Map<String, List<JSONObject>> mwListByUserId = new ConcurrentHashMap<>();
 	private static Map<String, List<JSONObject>> mwListUserId = new ConcurrentHashMap<>();
 	private static Map<String, List<PredefinedMwEntity>> predefinedMwList = new ConcurrentHashMap<>();
 	private static Map<String, List<PredefinedMwEntity>> masterPredefinedMwList = new ConcurrentHashMap<>();
 
-	
 	/**
 	 * @return the mwListUserId
 	 */
@@ -58,6 +56,5 @@ public class MwCacheController {
 	public static void setMasterPredefinedMwList(Map<String, List<PredefinedMwEntity>> masterPredefinedMwList) {
 		MwCacheController.masterPredefinedMwList = masterPredefinedMwList;
 	}
-
 
 }

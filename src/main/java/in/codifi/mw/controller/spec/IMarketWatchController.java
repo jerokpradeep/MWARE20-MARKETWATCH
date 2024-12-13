@@ -1,6 +1,5 @@
 package in.codifi.mw.controller.spec;
 
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -10,6 +9,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.RestResponse;
+import org.json.simple.JSONObject;
 
 import in.codifi.mw.model.MwCommodityContarctModel;
 import in.codifi.mw.model.MwIndicesModel;
@@ -54,14 +54,13 @@ public interface IMarketWatchController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "To rename market Watch")
 	RestResponse<ResponseModel> renameMarketWatch(MwRequestModel pDto);
-	
+
 	@Path("/sortMwScrips")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "To add symbol in market Watch")
 	public RestResponse<ResponseModel> sortMwScrips(MwRequestModel pDto);
-	
-	
+
 	/**
 	 * Method to add the scrip into cache and data base
 	 * 
@@ -73,7 +72,7 @@ public interface IMarketWatchController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "To add symbol in market Watch")
 	public RestResponse<ResponseModel> addscrip(MwRequestModel pDto);
-	
+
 	/**
 	 * Method to delete the scrips from the cache and market watch
 	 * 
@@ -95,13 +94,12 @@ public interface IMarketWatchController {
 	 * @return
 	 */
 	@Path("/getAllMwScrips")
-	@POST
+	@GET
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "Get Scrip details for given user id .")
-	RestResponse<ResponseModel> getAllMwScrips(MwRequestModel pDto);
+	RestResponse<ResponseModel> getAllMwScrips();
 
-	
 	/**
 	 * Method to geIndices
 	 * 
@@ -110,19 +108,18 @@ public interface IMarketWatchController {
 	@GET
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	RestResponse<ResponseModel> getIndices(MwIndicesModel pDto);
-	
+	JSONObject getIndices(MwIndicesModel pDto);
+
 	/**
 	 * Method to geIndices
 	 * 
 	 */
-	@Path("/getcommodityContarct")
+	@Path("/getCommodityContract")
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	RestResponse<ResponseModel> getcommodityContarct(MwCommodityContarctModel pDto);
-	
-	
+
 	/**
 	 * 
 	 * @param model

@@ -3,6 +3,8 @@
  */
 package in.codifi.mw.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,15 +18,35 @@ import javax.enterprise.context.ApplicationScoped;
 public class CommonUtils {
 	private static final String POSITIVE_WHOLENUMBER_REGEX = "^[1-9]\\d*(\\.0+)?$";
 
-	
-	public static boolean isValidExch(String input) {
+	public boolean isValidExch(String input) {
 		// Use a regex to check if the input matches any of the valid values
-//		return input.matches("BCD|BFO|BSE|CDS|MCX|NFO|NSE|NCO");
-		return input.matches("BSECURR|BSEFO|BSEEQ|NSECURR|MCXCOMM|NSEFO|NSEEQ|NSECOMM");
+		return input.toUpperCase().matches("BSECURR|BSEFO|BSEEQ|NSECURR|MCXCOMM|NSEFO|NSEEQ|NSECOMM");
+	}
+
+	public boolean isValidMWRename(String input) {
+		// Use a regex to check if the input matches any of the valid values
+		return input.toUpperCase().matches("NIFTY 50|NIFTY50|RECENTLYVIEWED|RECENTLY VIEWED|MY STOCK|MYSTOCK");
+	}
+
+	public boolean isValidExchSegment(String input) {
+		// Use a regex to check if the input matches any of the valid values
+		return input.toUpperCase().matches("BCD|BFO|BSE|CDS|MCX|NFO|NSE|NCO");
 	}
 
 	public boolean checkThisIsTheNumber(String token) {
 		int TOKEN_MAX_LENGTH = 8;
+		String TOKEN_ALLOWED_CHARACTERS_REGEX = "^\\d+$";
+		if (StringUtil.isNullOrEmpty(token)) {
+			return false;
+		}
+		if (token.length() > TOKEN_MAX_LENGTH) {
+			return false;
+		}
+		return Pattern.matches(TOKEN_ALLOWED_CHARACTERS_REGEX, token);
+	}
+
+	public boolean validateToken(String token) {
+		int TOKEN_MAX_LENGTH = 6;
 		String TOKEN_ALLOWED_CHARACTERS_REGEX = "^\\d+$";
 		if (StringUtil.isNullOrEmpty(token)) {
 			return false;
@@ -66,6 +88,12 @@ public class CommonUtils {
 				exch = "BCO";
 			} else if (exchSeg.equalsIgnoreCase("bse_cm")) {
 				exch = "BSE";
+			} else if (exchSeg.equalsIgnoreCase("nse_idx")) {
+				exch = "NSE";
+			} else if (exchSeg.equalsIgnoreCase("bse_idx")) {
+				exch = "BSE";
+			} else if (exchSeg.equalsIgnoreCase("mcx_idx")) {
+				exch = "MCX";
 			}
 		} catch (Exception e) {
 			return exch;
@@ -110,6 +138,7 @@ public class CommonUtils {
 		}
 		return exchSegment;
 	}
+
 	public String getExchangeNameIIFL(String exchSeg) {
 		String exch = "";
 		try {
@@ -133,6 +162,36 @@ public class CommonUtils {
 				exch = "BSECOMM";
 			} else if (exchSeg.equalsIgnoreCase("BSE")) {
 				exch = "BSEEQ";
+			}
+		} catch (Exception e) {
+			return exch;
+		}
+		return exch;
+	}
+
+	public String getExchangeNameContract(String exchSeg) {
+		String exch = "";
+		try {
+			if (exchSeg.equalsIgnoreCase("NSEFO")) {
+				exch = "NFO";
+			} else if (exchSeg.equalsIgnoreCase("NSECOMM")) {
+				exch = "NCO";
+			} else if (exchSeg.equalsIgnoreCase("NSEEQ")) {
+				exch = "NSE";
+			} else if (exchSeg.equalsIgnoreCase("NSECUR")) {
+				exch = "CDS";
+			} else if (exchSeg.equalsIgnoreCase("NCDEXCOMM")) {
+				exch = "NCDEX";
+			} else if (exchSeg.equalsIgnoreCase("MCXCOMM")) {
+				exch = "MCX";
+			} else if (exchSeg.equalsIgnoreCase("BSEFO")) {
+				exch = "BFO";
+			} else if (exchSeg.equalsIgnoreCase("BSECURR")) {
+				exch = "BCD";
+			} else if (exchSeg.equalsIgnoreCase("BSECOMM")) {
+				exch = "BCO";
+			} else if (exchSeg.equalsIgnoreCase("BSEEQ")) {
+				exch = "BSE";
 			}
 		} catch (Exception e) {
 			return exch;
@@ -170,15 +229,15 @@ public class CommonUtils {
 	public static boolean isOnlyInteger(String input) {
 		return input != null && input.matches("\\d+");
 	}
-	
-	public boolean isBetweenOneAndhundred (int mwId) {
+
+	public boolean isBetweenOneAndhundred(int mwId) {
 		return mwId >= 1 && mwId <= 100;
 	}
 
 	public boolean isBetweenOneAndfifty(int mwId) {
 		return mwId >= 1 && mwId <= 50;
 	}
-	
+
 	public boolean isPositiveWholeNumber(String input) {
 		// Remove leading zeros before the decimal point or before the entire number
 		String trimmed = input.trim().replaceFirst("^0+(?!$)", "");
@@ -190,4 +249,27 @@ public class CommonUtils {
 
 		return trimmed.matches(POSITIVE_WHOLENUMBER_REGEX);
 	}
+
+	public boolean checkExchangeIsValid(String[] reqModel) {
+		// Hardcoded exchange values as List<String>
+		List<String> hardcodedExchanges = new ArrayList<>();
+		hardcodedExchanges.add("NSEEQ");
+		hardcodedExchanges.add("NSEFO");
+		hardcodedExchanges.add("BSEEQ");
+		hardcodedExchanges.add("BSEFO");
+		hardcodedExchanges.add("NSECURR");
+		hardcodedExchanges.add("BSECURR");
+		hardcodedExchanges.add("MCXCOMM");
+		hardcodedExchanges.add("NSECOMM");
+		hardcodedExchanges.add("ALL");
+
+		// Check if any of the reqModel values are in the hardcodedExchanges list
+		for (String exchange : reqModel) {
+			if (!hardcodedExchanges.contains(exchange.trim().toUpperCase())) {
+				return false; // If any value is not found in the list, return false
+			}
+		}
+		return true; // If all values are found in the list, return true
+	}
+
 }

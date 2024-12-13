@@ -6,13 +6,11 @@ import java.util.List;
 
 import org.json.simple.JSONObject;
 
-
 /**
  * @author Vicky
  *
  */
 public class AppConstants {
-
 
 	public static final String APPLICATION_JSON = "application/json";
 	public static final String TEXT_PLAIN = "text/plain";
@@ -95,27 +93,25 @@ public class AppConstants {
 	public static final String MODULE_MW = "Marketwatch";
 	public static final String SOURCE_MOB = "MOB";
 	public static final String PNL_LOT = "PNL_LOT";
-	
-	public static final String MW_NAME= "Invalid MarketWatch Name.";
-	
-	public static final String SORTING_ORDER= "Sorting order saved successfully.";
 
-	public static final String ERROR_MIN_CHAR = "Minimum 3 characters required";
+	public static final String MW_NAME = "Invalid MarketWatch Name.";
+
+	public static final String SORTING_ORDER = "Sorting order saved successfully.";
+
 	public static final String FETCH_DATA_FROM_CACHE = "fetchDataFromCache";
 	public static final String NOT_FOUND = "No record found";
 
-	
 	public static final String INVALID_MW_ID = "Invalid MarketWatch Id";
 	public static final String INVALID_SORTING_ORDER = "Invalid sortingOrder";
 	public static final String INVALID_EXCH = "Invalid Exchange";
 	public static final String INVALID_TOKEN = "Invalid Token";
 	public static final String INVALID_SEARCH_TEXT = "Invalid SearchText";
 	public static final String ALREADY_DELETED_SCRIPT = "Script is not Available";
-	public static final String MW_NAME_40= "MarketWatch Name should not be more than 40 characters";
-	public static final String PAGE_SIZE_100= "Page Size should not be more than 100 characters";
-	public static final String CURRENT_PAGE_50= "Current Page Size should not be more than 50 characters";
-	
-	public static final String INVALID_PAGE_SIZE= "Invalid Page Size";
-	public static final String INVALID_CURRENT_PAGE= "Invalid Current Page";
+	public static final String MW_NAME_40 = "MarketWatch Name should not be more than 40 characters";
+	public static final String PAGE_SIZE_100 = "Page Size should not be more than 100 characters";
+	public static final String CURRENT_PAGE_50 = "Current Page Size should not be more than 50 characters";
 
+	public static final String INVALID_PAGE_SIZE = "Invalid Page Size";
+	public static final String INVALID_CURRENT_PAGE = "Invalid Current Page";
+	public static final String GET_INDEX = "GetIndex";
 }
