@@ -38,7 +38,7 @@ public class MarketWatchController implements IMarketWatchController {
 
 	@Override
 	public String test() {
-		dao.loadContract();
+//		dao.loadContract();
 		return "MarketWatch Module is working";
 	}
 

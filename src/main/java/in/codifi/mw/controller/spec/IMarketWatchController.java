@@ -114,7 +114,7 @@ public interface IMarketWatchController {
 	 * Method to geIndices
 	 * 
 	 */
-	@Path("/getcommodityContarct")
+	@Path("/getCommodityContract")
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)

@@ -88,6 +88,12 @@ public class CommonUtils {
 				exch = "BCO";
 			} else if (exchSeg.equalsIgnoreCase("bse_cm")) {
 				exch = "BSE";
+			} else if (exchSeg.equalsIgnoreCase("nse_idx")) {
+				exch = "NSE";
+			} else if (exchSeg.equalsIgnoreCase("bse_idx")) {
+				exch = "BSE";
+			} else if (exchSeg.equalsIgnoreCase("mcx_idx")) {
+				exch = "MCX";
 			}
 		} catch (Exception e) {
 			return exch;

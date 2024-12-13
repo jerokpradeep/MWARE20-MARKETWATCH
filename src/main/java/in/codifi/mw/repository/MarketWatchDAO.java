@@ -19,7 +19,9 @@ import in.codifi.mw.entity.MarketWatchScripDetailsDTO;
 import in.codifi.mw.model.CacheMwDetailsModel;
 import in.codifi.mw.model.IndexModel;
 import in.codifi.mw.model.MwRequestModel;
+import in.codifi.mw.model.badgeModel;
 import in.codifi.mw.util.CommonUtils;
+import in.codifi.mw.util.StringUtil;
 import io.quarkus.logging.Log;
 
 /**
@@ -152,7 +154,7 @@ public class MarketWatchDAO {
 			String query = "SELECT A.mw_name, A.user_id,(case when A.mw_id is null then 0 else A.mw_id end) as mw_id,"
 					+ " B.exch, B.exch_seg, B.token, B.symbol, B.trading_symbol, B.formatted_ins_name, B.expiry_date, B.pdc,"
 					+ " (case when B.sorting_order is null then 0 else B.sorting_order end) as sorting_order"
-					+ " FROM tbl_market_watch_list as A  LEFT JOIN tbl_market_watch_scrips B on  A.mw_id = B.mw_id and"
+					+ "  , B.week_tag FROM tbl_market_watch_list as A  LEFT JOIN tbl_market_watch_scrips B on  A.mw_id = B.mw_id and"
 					+ " A.user_id = B.user_id where A.user_id = ? order by A.user_id, A.mw_id , B.sorting_order";
 			pStmt = conn.prepareStatement(query);
 			int paramPos = 1;
@@ -173,6 +175,15 @@ public class MarketWatchDAO {
 					model.setExpiry(rSet.getDate("expiry_date") != null ? rSet.getDate("expiry_date").toString() : "");
 					model.setPdc(rSet.getString("pdc"));
 					model.setSortOrder(rSet.getInt("sorting_order"));
+					model.setWeekTag(
+							StringUtil.isNullOrEmpty(rSet.getString("week_tag")) ? "" : rSet.getString("week_tag"));
+					badgeModel badge = new badgeModel();
+					badge.setBnpl("");
+					badge.setEvent(false);
+					badge.setHoldingqty("0");
+					badge.setIdeas("");
+					model.setBadge(badge); // Correct if badgeModel is a class
+					model.setScreeners(new ArrayList<String>());
 					response.add(model);
 				}
 			}

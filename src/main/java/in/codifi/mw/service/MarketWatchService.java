@@ -589,6 +589,16 @@ public class MarketWatchService implements IMarketWatchService {
 					data.getExchange(); // You can still call getExchange if needed
 				}
 
+				for (MwScripModel data : parmDto.getScripData()) {
+					String token = data.getToken(); // Get the token
+					String exchange = data.getExchange();
+					if (!HazelCacheController.getInstance().getContractMaster()
+							.containsKey(commonUtils.getExchangeNameContract(exchange.toUpperCase()) + "_" + token)) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+								ErrorMessageConstants.INVALID_TOKEN);
+					}
+				}
+
 				int curentSortOrder = getExistingSortOrder(userId, parmDto.getMwId());
 				List<MwScripModel> mwScripModels = new ArrayList<>();
 				for (MwScripModel model : parmDto.getScripData()) {
