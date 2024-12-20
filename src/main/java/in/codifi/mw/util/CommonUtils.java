@@ -9,6 +9,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import in.codifi.mw.config.ApplicationProperties;
 
 /**
  * @author Vicky
@@ -16,11 +19,21 @@ import javax.enterprise.context.ApplicationScoped;
  */
 @ApplicationScoped
 public class CommonUtils {
+
+	@Inject
+	ApplicationProperties properties;
+
 	private static final String POSITIVE_WHOLENUMBER_REGEX = "^[1-9]\\d*(\\.0+)?$";
 
 	public boolean isValidExch(String input) {
 		// Use a regex to check if the input matches any of the valid values
-		return input.toUpperCase().matches("BSECURR|BSEFO|BSEEQ|NSECURR|MCXCOMM|NSEFO|NSEEQ|NSECOMM");
+		if (properties.isExchfull()) {
+			return input.toUpperCase().matches("BSECURR|BSEFO|BSEEQ|NSECURR|MCXCOMM|NSEFO|NSEEQ|NSECOMM");
+		} else {
+			return input.toUpperCase().matches("NFO|NCO|NSE|CDS|NCDEX|MCX|BFO|BCD|BCO|BSE");
+
+		}
+
 	}
 
 	public boolean isValidMWRename(String input) {

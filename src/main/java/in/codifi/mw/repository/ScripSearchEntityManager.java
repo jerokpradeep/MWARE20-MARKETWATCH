@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
+import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.model.ScripSearchResp;
 import in.codifi.mw.model.SearchScripReqModel;
 import in.codifi.mw.util.CommonUtils;
@@ -34,6 +35,9 @@ public class ScripSearchEntityManager {
 
 	@Inject
 	CommonUtils commonUtils;
+
+	@Inject
+	ApplicationProperties properties;
 
 //	@Named("mw")
 //	@Inject
@@ -59,35 +63,39 @@ public class ScripSearchEntityManager {
 			for (String exch1 : reqModel.getExchange()) {
 				String adjustedExchange = "ALL"; // Default to the original filename
 
-				// Apply the switch statement to adjust the filename
-				switch (exch1.toUpperCase()) {
-				case "NSEEQ":
-					adjustedExchange = "NSE";
-					break;
-				case "NSEFO":
-					adjustedExchange = "NFO";
-					break;
-				case "BSEEQ":
-					adjustedExchange = "BSE";
-					break;
-				case "BSEFO":
-					adjustedExchange = "BFO";
-					break;
-				case "NSECURR":
-					adjustedExchange = "CDS";
-					break;
-				case "BSECURR":
-					adjustedExchange = "BCD";
-					break;
-				case "MCXCOMM":
-					adjustedExchange = "MCX";
-					break;
-				case "NSECOMM":
-					adjustedExchange = "NCO";
-					break;
-				default:
-					// Keep filename as is if no match is found
-					break;
+				if (properties.isExchfull()) {
+					// Apply the switch statement to adjust the filename
+					switch (exch1.toUpperCase()) {
+					case "NSEEQ":
+						adjustedExchange = "NSE";
+						break;
+					case "NSEFO":
+						adjustedExchange = "NFO";
+						break;
+					case "BSEEQ":
+						adjustedExchange = "BSE";
+						break;
+					case "BSEFO":
+						adjustedExchange = "BFO";
+						break;
+					case "NSECURR":
+						adjustedExchange = "CDS";
+						break;
+					case "BSECURR":
+						adjustedExchange = "BCD";
+						break;
+					case "MCXCOMM":
+						adjustedExchange = "MCX";
+						break;
+					case "NSECOMM":
+						adjustedExchange = "NCO";
+						break;
+					default:
+						// Keep filename as is if no match is found
+						break;
+					}
+				} else {
+					adjustedExchange = exch1.toUpperCase();
 				}
 				// Add the adjusted filename to the ArrayList
 				adjustedExchangeList.add(adjustedExchange);
@@ -192,10 +200,16 @@ public class ScripSearchEntityManager {
 				String optionType = object[10] == null ? "" : String.valueOf(object[10]);
 				String isin = object[11] == null ? "" : String.valueOf(object[11]);
 
-				String exchangeIifl = commonUtils.getExchangeNameIIFL(exchange);
-				model.setExchange(exchangeIifl);
-				String segmentIifl = commonUtils.getExchangeName(segment);
-				model.setSegment(segmentIifl);
+				if (properties.isExchfull()) {
+					String exchangeIifl = commonUtils.getExchangeNameIIFL(exchange);
+					model.setExchange(exchangeIifl);
+					String segmentIifl = commonUtils.getExchangeName(segment);
+					model.setSegment(segmentIifl);
+				} else {
+					model.setExchange(exchange);
+					model.setSegment(segment);
+				}
+
 				model.setToken(token);
 				model.setFormattedInsName(formattedInsName);
 				model.setWeekTag(weekTag);
@@ -246,35 +260,39 @@ public class ScripSearchEntityManager {
 			for (String exch1 : reqModel.getExchange()) {
 				String adjustedExchange = "ALL"; // Default to the original filename
 
-				// Apply the switch statement to adjust the filename
-				switch (exch1.toUpperCase()) {
-				case "NSEEQ":
-					adjustedExchange = "NSE";
-					break;
-				case "NSEFO":
-					adjustedExchange = "NFO";
-					break;
-				case "BSEEQ":
-					adjustedExchange = "BSE";
-					break;
-				case "BSEFO":
-					adjustedExchange = "BFO";
-					break;
-				case "NSECURR":
-					adjustedExchange = "CDS";
-					break;
-				case "BSECURR":
-					adjustedExchange = "BCD";
-					break;
-				case "MCXCOMM":
-					adjustedExchange = "MCX";
-					break;
-				case "NSECOMM":
-					adjustedExchange = "NCO";
-					break;
-				default:
-					// Keep filename as is if no match is found
-					break;
+				if (properties.isExchfull()) {
+					// Apply the switch statement to adjust the filename
+					switch (exch1.toUpperCase()) {
+					case "NSEEQ":
+						adjustedExchange = "NSE";
+						break;
+					case "NSEFO":
+						adjustedExchange = "NFO";
+						break;
+					case "BSEEQ":
+						adjustedExchange = "BSE";
+						break;
+					case "BSEFO":
+						adjustedExchange = "BFO";
+						break;
+					case "NSECURR":
+						adjustedExchange = "CDS";
+						break;
+					case "BSECURR":
+						adjustedExchange = "BCD";
+						break;
+					case "MCXCOMM":
+						adjustedExchange = "MCX";
+						break;
+					case "NSECOMM":
+						adjustedExchange = "NCO";
+						break;
+					default:
+						// Keep filename as is if no match is found
+						break;
+					}
+				} else {
+					adjustedExchange = exch1.toUpperCase();
 				}
 				// Add the adjusted filename to the ArrayList
 				adjustedExchangeList.add(adjustedExchange);

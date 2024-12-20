@@ -4,6 +4,7 @@
 package in.codifi.mw.controller.spec;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -31,5 +32,10 @@ public interface ScripsControllerSpecs {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "Get all the scrips based upon the scrip")
 	RestResponse<ResponseModel> getScrips(SearchScripReqModel reqModel);
+	
+	@Path("/recentlyViewed")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	RestResponse<ResponseModel> getRecentlyViewed();
 
 }

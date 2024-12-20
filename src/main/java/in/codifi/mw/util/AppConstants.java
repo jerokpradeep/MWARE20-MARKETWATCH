@@ -108,10 +108,12 @@ public class AppConstants {
 	public static final String INVALID_SEARCH_TEXT = "Invalid SearchText";
 	public static final String ALREADY_DELETED_SCRIPT = "Script is not Available";
 	public static final String MW_NAME_40 = "MarketWatch Name should not be more than 40 characters";
-	public static final String PAGE_SIZE_100 = "Page Size should not be more than 100 characters";
+//	public static final String PAGE_SIZE_100 = "Page Size should not be more than 100 characters";
+	public static final String PAGE_SIZE_100 = "No search results found for the requested page.";
 	public static final String CURRENT_PAGE_50 = "Current Page Size should not be more than 50 characters";
 
 	public static final String INVALID_PAGE_SIZE = "Invalid Page Size";
 	public static final String INVALID_CURRENT_PAGE = "Invalid Current Page";
 	public static final String GET_INDEX = "GetIndex";
+	public static final String NO_DATA = "No Data";
 }

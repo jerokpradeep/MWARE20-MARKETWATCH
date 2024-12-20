@@ -56,4 +56,18 @@ public class CacheController {
 		MwCacheController.getMwListUserId().remove(pUserId);
 		return prepareResponse.prepareMWSuccessResponseObject(AppConstants.SUCCESS_STATUS);
 	}
+	
+	/**
+	 * Method to get Cache data
+	 * @param name
+	 * @param key
+	 * @return
+	 */
+	@Path("/removeIndexCacheData")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public RestResponse<ResponseModel> removeIndexCacheData() {
+		MwCacheController.getGetIndexData().remove(AppConstants.GET_INDEX);
+		return prepareResponse.prepareMWSuccessResponseObject(AppConstants.SUCCESS_STATUS);
+	}
 }

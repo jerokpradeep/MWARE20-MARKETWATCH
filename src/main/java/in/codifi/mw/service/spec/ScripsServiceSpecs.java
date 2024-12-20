@@ -5,6 +5,7 @@ package in.codifi.mw.service.spec;
 
 import org.jboss.resteasy.reactive.RestResponse;
 
+import in.codifi.mw.model.ClinetInfoModel;
 import in.codifi.mw.model.ResponseModel;
 import in.codifi.mw.model.SearchScripReqModel;
 
@@ -19,5 +20,11 @@ public interface ScripsServiceSpecs {
 	 * @return
 	 */
 	RestResponse<ResponseModel> getScrips(SearchScripReqModel reqModel);
+
+	/**
+	 * @param info
+	 * @return
+	 */
+	RestResponse<ResponseModel> getRecentlyViewed(ClinetInfoModel info);
 
 }

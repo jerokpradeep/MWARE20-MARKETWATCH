@@ -88,15 +88,9 @@ public class MarketWatchController implements IMarketWatchController {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
+		
 		return iMarketWatchService.renameMarketWatch(pDto, info.getUcc());
 
-//		boolean isValid = validateRequestService.isValidUser(pDto);
-//		if (isValid) {
-//			return iMarketWatchService.renameMarketWatch(pDto);
-//		} else {
-//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-//		}
-//		return iMarketWatchService.renameMarketWatch(pDto);
 	}
 
 	@Override

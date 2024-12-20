@@ -16,4 +16,6 @@ public class ApplicationProperties {
 	String mwSize;
 	@ConfigProperty(name = "appconfig.app.mw.flow")
 	String mwFlow;
+	@ConfigProperty(name = "appconfig.app.mw.exchfull")
+	private boolean exchfull;
 }
