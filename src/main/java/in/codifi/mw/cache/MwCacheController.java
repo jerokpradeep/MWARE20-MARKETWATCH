@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.json.simple.JSONObject;
 
 import in.codifi.mw.entity.PredefinedMwEntity;
+import in.codifi.mw.model.IndexModel;
 
 /**
  * @author Vicky
@@ -18,12 +19,27 @@ public class MwCacheController {
 	private static Map<String, List<JSONObject>> mwListUserId = new ConcurrentHashMap<>();
 	private static Map<String, List<PredefinedMwEntity>> predefinedMwList = new ConcurrentHashMap<>();
 	private static Map<String, List<PredefinedMwEntity>> masterPredefinedMwList = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<String, List<IndexModel>> getIndexData = new ConcurrentHashMap<>();
 
 	/**
 	 * @return the mwListUserId
 	 */
 	public static Map<String, List<JSONObject>> getMwListUserId() {
 		return mwListUserId;
+	}
+
+	/**
+	 * @return the getIndexData
+	 */
+	public static ConcurrentHashMap<String, List<IndexModel>> getGetIndexData() {
+		return getIndexData;
+	}
+
+	/**
+	 * @param getIndexData the getIndexData to set
+	 */
+	public static void setGetIndexData(ConcurrentHashMap<String, List<IndexModel>> getIndexData) {
+		MwCacheController.getIndexData = getIndexData;
 	}
 
 	/**
@@ -57,4 +73,6 @@ public class MwCacheController {
 		MwCacheController.masterPredefinedMwList = masterPredefinedMwList;
 	}
 
+
+	
 }

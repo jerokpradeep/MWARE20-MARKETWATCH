@@ -14,11 +14,18 @@ import javax.inject.Inject;
 
 import org.jboss.resteasy.reactive.RestResponse;
 
+import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.config.HazelcastConfig;
+import in.codifi.mw.model.ClinetInfoModel;
+import in.codifi.mw.model.ErrorResponseModel;
+import in.codifi.mw.model.RecentlyViewedEntity;
+import in.codifi.mw.model.RecentlyViewedModel;
 import in.codifi.mw.model.ResponseModel;
 import in.codifi.mw.model.ScripSearchResp;
 import in.codifi.mw.model.SearchModel;
 import in.codifi.mw.model.SearchScripReqModel;
+import in.codifi.mw.repository.RecentlyViewedRepository;
 import in.codifi.mw.repository.ScripSearchEntityManager;
 import in.codifi.mw.service.spec.ScripsServiceSpecs;
 import in.codifi.mw.util.AppConstants;
@@ -28,6 +35,7 @@ import in.codifi.mw.util.ErrorMessageConstants;
 import in.codifi.mw.util.PrepareResponse;
 import in.codifi.mw.util.StringUtil;
 import io.quarkus.logging.Log;
+import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * @author Vicky
@@ -46,7 +54,13 @@ public class ScripsService implements ScripsServiceSpecs {
 
 	@Inject
 	CommonUtils commonUtils;
+	
+	@Inject	
+	ApplicationProperties properties;
 
+	@Inject
+	RecentlyViewedRepository recentlyViewedRepository;
+	
 	/**
 	 *
 	 */
@@ -119,7 +133,8 @@ public class ScripsService implements ScripsServiceSpecs {
 			String totalCount = scripSearchRepo.getScripsCount(reqModel);
 			int pageCount = 0;
 			if (StringUtil.isNotNullOrEmptyAfterTrim(totalCount)) {
-				pageCount = Integer.parseInt(totalCount) / tempPageSize;
+//				pageCount = Integer.parseInt(totalCount) / tempPageSize;
+				pageCount = (int) Math.ceil((double) Integer.parseInt(totalCount) / tempPageSize);
 			}
 
 			if (responses != null && responses.size() > 0) {
@@ -157,36 +172,41 @@ public class ScripsService implements ScripsServiceSpecs {
 		for (String exch : reqModel.getExchange()) {
 			String adjustedExchange = "ALL"; // Default to the original filename
 
-			// Apply the switch statement to adjust the filename
-			switch (exch.toUpperCase()) {
-			case "NSEEQ":
-				adjustedExchange = "NSE";
-				break;
-			case "NSEFO":
-				adjustedExchange = "NFO";
-				break;
-			case "BSEEQ":
-				adjustedExchange = "BSE";
-				break;
-			case "BSEFO":
-				adjustedExchange = "BFO";
-				break;
-			case "NSECURR":
-				adjustedExchange = "CDS";
-				break;
-			case "BSECURR":
-				adjustedExchange = "BCD";
-				break;
-			case "MCXCOMM":
-				adjustedExchange = "MCX";
-				break;
-			case "NSECOMM":
-				adjustedExchange = "NCO";
-				break;
-			default:
-				// Keep filename as is if no match is found
-				break;
+			if (properties.isExchfull()) {
+				// Apply the switch statement to adjust the filename
+				switch (exch.toUpperCase()) {
+				case "NSEEQ":
+					adjustedExchange = "NSE";
+					break;
+				case "NSEFO":
+					adjustedExchange = "NFO";
+					break;
+				case "BSEEQ":
+					adjustedExchange = "BSE";
+					break;
+				case "BSEFO":
+					adjustedExchange = "BFO";
+					break;
+				case "NSECURR":
+					adjustedExchange = "CDS";
+					break;
+				case "BSECURR":
+					adjustedExchange = "BCD";
+					break;
+				case "MCXCOMM":
+					adjustedExchange = "MCX";
+					break;
+				case "NSECOMM":
+					adjustedExchange = "NCO";
+					break;
+				default:
+					// Keep filename as is if no match is found
+					break;
+				}
+			}else {
+				adjustedExchange = exch.toUpperCase();
 			}
+			
 			// Add the adjusted filename to the ArrayList
 			adjustedExchangeList.add(adjustedExchange);
 		}
@@ -224,6 +244,69 @@ public class ScripsService implements ScripsServiceSpecs {
 			responses = scripSearchRepo.getScrips(reqModel);
 		}
 		return responses;
+	}
+
+	@Override
+	public RestResponse<ResponseModel> getRecentlyViewed(ClinetInfoModel info) {
+		ErrorResponseModel errorResponseModel = new ErrorResponseModel();
+		try {
+			String userId = info.getUserId();
+			/*
+			 * Check the data's are present for the given user Id into the Database
+			 */
+			List<RecentlyViewedEntity> recentlyViewedData = recentlyViewedRepository
+					.findAllByUserIdOrderBySortOrderAsc(userId);
+			List<RecentlyViewedModel> recentlyViewedResonse = new ArrayList<>();
+			if (recentlyViewedData != null && recentlyViewedData.size() > 0) {
+				for (RecentlyViewedEntity result : recentlyViewedData) {
+					String tempToken = result.getToken();
+					String tempExch = result.getExch();
+					int sortingOrder = result.getSortOrder();
+					/*
+					 * Check the hazecast cache for the given exchange and token
+					 */
+					ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
+							.get(tempExch + "_" + tempToken);
+					if (ObjectUtils.isNotEmpty(contractMasterModel)) {
+						RecentlyViewedModel tempResult = new RecentlyViewedModel();
+						tempResult.setAlterToken(contractMasterModel.getAlterToken());
+						tempResult.setCompanyName(contractMasterModel.getCompanyName());
+						tempResult.setExch(contractMasterModel.getExch());
+						tempResult.setExpiry(contractMasterModel.getExpiry());
+						tempResult.setFormattedInsName(contractMasterModel.getFormattedInsName());
+						tempResult.setFreezQty(contractMasterModel.getFreezQty());
+						tempResult.setGroupName(contractMasterModel.getGroupName());
+						tempResult.setInsType(contractMasterModel.getInsType());
+						tempResult.setIsin(contractMasterModel.getIsin());
+						tempResult.setLotSize(contractMasterModel.getLotSize());
+						tempResult.setOptionType(contractMasterModel.getOptionType());
+						tempResult.setPdc(contractMasterModel.getPdc());
+						tempResult.setSegment(contractMasterModel.getSegment());
+						tempResult.setSortingOrder(sortingOrder);
+						tempResult.setStrikePrice(contractMasterModel.getStrikePrice());
+						tempResult.setSymbol(contractMasterModel.getSymbol());
+						tempResult.setTickSize(contractMasterModel.getTickSize());
+						tempResult.setToken(contractMasterModel.getToken());
+						tempResult.setTradingSymbol(contractMasterModel.getTradingSymbol());
+						tempResult.setWeekTag(contractMasterModel.getWeekTag());
+						recentlyViewedResonse.add(tempResult);
+					}
+				}
+				if (recentlyViewedResonse != null && recentlyViewedResonse.size() > 0) {
+					return prepareResponse.prepareSuccessResponseObject(recentlyViewedResonse);
+				} else {
+					errorResponseModel.setStatus(AppConstants.FAILED_STATUS);
+					errorResponseModel.setMessage(AppConstants.NO_DATA);
+				}
+			} else {
+				errorResponseModel.setStatus(AppConstants.FAILED_STATUS);
+				errorResponseModel.setMessage(AppConstants.NO_DATA);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		}
+		return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
 	}
 
 }

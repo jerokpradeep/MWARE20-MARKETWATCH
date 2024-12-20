@@ -54,7 +54,7 @@ import io.quarkus.logging.Log;
 @SuppressWarnings("unchecked")
 @Service
 public class MarketWatchService implements IMarketWatchService {
-	private static final ConcurrentHashMap<String, List<IndexModel>> getIndexData = new ConcurrentHashMap<>();
+//	private static final ConcurrentHashMap<String, List<IndexModel>> getIndexData = new ConcurrentHashMap<>();
 	@Autowired
 	PrepareResponse prepareResponse;
 	@Inject
@@ -264,13 +264,17 @@ public class MarketWatchService implements IMarketWatchService {
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW114,
 							ErrorMessageConstants.INVALID_MWID);
 				}
-				if (StringUtil.isNullOrEmpty(pDto.getMwName())) {
+				if (StringUtil.isNullOrEmpty(pDto.getMwName().trim())) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW115,
+							ErrorMessageConstants.INVALID_MWNAME);
+				}
+
+				if (pDto.getMwName() == null || pDto.getMwName().trim().isEmpty()) {
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW115,
 							ErrorMessageConstants.INVALID_MWNAME);
 				}
 
 				if (!commonUtils.isBetweenOneAndFive(pDto.getMwId())) {
-					System.out.println(pDto.getMwId() + " is not between 1 and 5.");
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
 							AppConstants.INVALID_MW_ID);
 				}
@@ -284,7 +288,7 @@ public class MarketWatchService implements IMarketWatchService {
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW102, AppConstants.MW_NAME_40);
 				}
 
-				if (!commonUtils.isAlphanumeric(pDto.getMwName()) || pDto.getMwName() == null
+				if (!commonUtils.isAlphanumeric(pDto.getMwName().trim()) || pDto.getMwName() == null
 						|| pDto.getMwName().isEmpty() || commonUtils.isEmptyOrWhitespace(pDto.getMwName())) {
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW103, AppConstants.MW_NAME);
 				}
@@ -375,7 +379,6 @@ public class MarketWatchService implements IMarketWatchService {
 					&& pDto.getMwId() > 0) {
 
 				if (!commonUtils.isBetweenOneAndFive(pDto.getMwId())) {
-					System.out.println(pDto.getMwId() + " is not between 1 and 5.");
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
 							AppConstants.INVALID_MW_ID);
 				}
@@ -386,9 +389,12 @@ public class MarketWatchService implements IMarketWatchService {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
 								ErrorMessageConstants.INVALID_EXCH);
 					}
+					if (exchange == null || exchange.trim().isEmpty()) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_EXCH);
+					}
 					// Check if exchange is null or invalid
 					if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
-						System.out.println(exchange + " this EXCH is Not Correct.");
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
 								ErrorMessageConstants.INVALID_EXCHANGE);
 					}
@@ -396,12 +402,15 @@ public class MarketWatchService implements IMarketWatchService {
 
 				for (int i = 0; i < pDto.getScripData().size(); i++) {
 					String token = pDto.getScripData().get(i).getToken();
-					if (StringUtil.isNullOrEmpty(token)) {
+					if (StringUtil.isNullOrEmpty(token.trim())) {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW118,
 								ErrorMessageConstants.TOKEN_EMTY_OR_NULL);
 					}
+					if (token == null || token.trim().isEmpty()) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
+								ErrorMessageConstants.INVALID_TOKEN);
+					}
 					if (!commonUtils.checkThisIsTheNumber(token.trim())) {
-						System.out.println(token + " this is Not Number.");
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
 								AppConstants.INVALID_TOKEN);
 					}
@@ -410,7 +419,6 @@ public class MarketWatchService implements IMarketWatchService {
 				for (int i = 0; i < pDto.getScripData().size(); i++) {
 					int exch = pDto.getScripData().get(i).getSortingOrder();
 					if (!commonUtils.isBetweenOneAndFifty(exch)) {
-						System.out.println(pDto.getMwId() + " is not between 1 and 50");
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW108,
 								AppConstants.INVALID_SORTING_ORDER);
 					}
@@ -434,46 +442,89 @@ public class MarketWatchService implements IMarketWatchService {
 	 * method to sort from Cache
 	 * 
 	 */
+//	public void sortFromCache(List<MwScripModel> dataToSort, String pUserId, int userMwId) {
+//		if (dataToSort != null && dataToSort.size() > 0) {
+//			List<JSONObject> res = MwCacheController.getMwListUserId().get(pUserId);
+//			String marketWatchId = String.valueOf(userMwId);
+//			JSONObject result = null;
+//			int indexOfRes = 0;
+//			if (res != null && res.size() > 0) {
+//				for (int itr = 0; itr < res.size(); itr++) {
+//					result = new JSONObject();
+//					result = res.get(itr);
+//					String mwId = (String) result.get("mwId").toString();
+//					if (marketWatchId.equalsIgnoreCase(mwId)) {
+//						indexOfRes = itr;
+//						break;
+//					}
+//				}
+//				if (result != null && !result.isEmpty()) {
+//					List<CacheMwDetailsModel> scripDetails = (List<CacheMwDetailsModel>) result.get("scrips");
+//					if (scripDetails != null && scripDetails.size() > 0) {
+//						for (int i = 0; i < dataToSort.size(); i++) {
+//							MwScripModel tempDTO = dataToSort.get(i);
+//							String token = tempDTO.getToken();
+//							String exch = tempDTO.getExchange();
+//							int sortOrder = tempDTO.getSortingOrder();
+//							for (int j = 0; j < scripDetails.size(); j++) {
+//								CacheMwDetailsModel tempScripDTO = scripDetails.get(j);
+//								String scripToken = tempScripDTO.getToken();
+//								String scripExch = tempScripDTO.getExchange();
+//								if (scripToken.equalsIgnoreCase(token) && scripExch.equalsIgnoreCase(exch)) {
+//									tempScripDTO.setSortOrder(sortOrder);
+//									scripDetails.remove(j);
+//									scripDetails.add(tempScripDTO);
+//								}
+//							}
+//						}
+//						result.remove("scrips");
+//						result.put("scrips", scripDetails);
+//						res.remove(indexOfRes);
+//						res.add(indexOfRes, result);
+//						MwCacheController.getMwListUserId().remove(pUserId);
+//						MwCacheController.getMwListUserId().put(pUserId, res);
+//					}
+//				}
+//			}
+//		}
+//	}
+
+	/**
+	 * 
+	 * @param dataToSort
+	 * @param pUserId
+	 * @param userMwId
+	 */
 	public void sortFromCache(List<MwScripModel> dataToSort, String pUserId, int userMwId) {
-		if (dataToSort != null && dataToSort.size() > 0) {
+		if (dataToSort != null && !dataToSort.isEmpty()) {
 			List<JSONObject> res = MwCacheController.getMwListUserId().get(pUserId);
 			String marketWatchId = String.valueOf(userMwId);
 			JSONObject result = null;
 			int indexOfRes = 0;
-			if (res != null && res.size() > 0) {
+
+			if (res != null && !res.isEmpty()) {
+				// Find the relevant Market Watch by mwId
 				for (int itr = 0; itr < res.size(); itr++) {
-					result = new JSONObject();
 					result = res.get(itr);
-					String mwId = (String) result.get("mwId").toString();
+					String mwId = result.get("mwId").toString();
 					if (marketWatchId.equalsIgnoreCase(mwId)) {
 						indexOfRes = itr;
 						break;
 					}
 				}
+
 				if (result != null && !result.isEmpty()) {
 					List<CacheMwDetailsModel> scripDetails = (List<CacheMwDetailsModel>) result.get("scrips");
-					if (scripDetails != null && scripDetails.size() > 0) {
-						for (int i = 0; i < dataToSort.size(); i++) {
-							MwScripModel tempDTO = dataToSort.get(i);
-							String token = tempDTO.getToken();
-							String exch = tempDTO.getExchange();
-							int sortOrder = tempDTO.getSortingOrder();
-							for (int j = 0; j < scripDetails.size(); j++) {
-								CacheMwDetailsModel tempScripDTO = scripDetails.get(j);
-								String scripToken = tempScripDTO.getToken();
-								String scripExch = tempScripDTO.getExchange();
-								if (scripToken.equalsIgnoreCase(token) && scripExch.equalsIgnoreCase(exch)) {
-									tempScripDTO.setSortOrder(sortOrder);
-									scripDetails.remove(j);
-									scripDetails.add(tempScripDTO);
-								}
-							}
+					if (scripDetails != null && !scripDetails.isEmpty()) {
+
+						// Update the sorting orders from 1 to N
+						for (int i = 0; i < scripDetails.size(); i++) {
+							CacheMwDetailsModel tempScripDTO = scripDetails.get(i);
+							tempScripDTO.setSortOrder(i + 1); // Reindex starting from 1
 						}
-						result.remove("scrips");
+
 						result.put("scrips", scripDetails);
-						res.remove(indexOfRes);
-						res.add(indexOfRes, result);
-						MwCacheController.getMwListUserId().remove(pUserId);
+						res.set(indexOfRes, result);
 						MwCacheController.getMwListUserId().put(pUserId, res);
 					}
 				}
@@ -489,23 +540,71 @@ public class MarketWatchService implements IMarketWatchService {
 	 * @param mwId
 	 * @return
 	 */
+//	private RestResponse<ResponseModel> sortScripInDataBase(List<MwScripModel> scripDataToSort, String userId,
+//			int mwId) {
+//
+//		if (scripDataToSort != null && scripDataToSort.size() > 0) {
+//			List<MarketWatchScripDetailsDTO> mwList = marketWatchDAO.findAllByUserIdAndMwId(userId, mwId);
+//			if (scripDataToSort.size() != mwList.size())
+//				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW113,
+//						ErrorMessageConstants.MISMATCH_SORTORDER_SIZE);
+//
+//			System.out.println("sortScripInDataBase - for user " + userId + "Count- " + mwList.size());
+//			List<MarketWatchScripDetailsDTO> newScripDetails = new ArrayList<>();
+//			for (int i = 0; i < scripDataToSort.size(); i++) {
+//				MwScripModel model = new MwScripModel();
+//				model = scripDataToSort.get(i);
+//				for (int j = 0; j < mwList.size(); j++) {
+//					MarketWatchScripDetailsDTO dbData = new MarketWatchScripDetailsDTO();
+//					dbData = mwList.get(j);
+//					if (dbData.getToken().equalsIgnoreCase(model.getToken())
+//							&& dbData.getEx().equalsIgnoreCase(model.getExchange())) {
+//						dbData.setSortingOrder(model.getSortingOrder());
+//						newScripDetails.add(dbData);
+//					}
+//				}
+//			}
+//			if (newScripDetails != null && newScripDetails.size() > 0) {
+//				int res = marketWatchDAO.updateMWScrips(newScripDetails, userId, mwId);
+//				if (res > 0) {
+//					System.out.println("Updated");
+//				}
+//			}
+//		}
+//		return prepareResponse.prepareMWSuccessResponseString(AppConstants.SORTING_ORDER);
+//	}
+
+	/**
+	 * 
+	 * @param scripDataToSort
+	 * @param userId
+	 * @param mwId
+	 * @return
+	 */
 	private RestResponse<ResponseModel> sortScripInDataBase(List<MwScripModel> scripDataToSort, String userId,
 			int mwId) {
 
-		if (scripDataToSort != null && scripDataToSort.size() > 0) {
+		if (scripDataToSort != null && !scripDataToSort.isEmpty()) {
 			List<MarketWatchScripDetailsDTO> mwList = marketWatchDAO.findAllByUserIdAndMwId(userId, mwId);
+
+			// Validate if the size matches, if not, return an error response
 			if (scripDataToSort.size() != mwList.size())
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW113,
 						ErrorMessageConstants.MISMATCH_SORTORDER_SIZE);
 
-			System.out.println("sortScripInDataBase - for user " + userId + "Count- " + mwList.size());
 			List<MarketWatchScripDetailsDTO> newScripDetails = new ArrayList<>();
+
+			// Reindex the sorting order for the scripDataToSort from 1 to N
 			for (int i = 0; i < scripDataToSort.size(); i++) {
-				MwScripModel model = new MwScripModel();
-				model = scripDataToSort.get(i);
+				MwScripModel model = scripDataToSort.get(i);
+				model.setSortingOrder(i + 1); // Reindex to start from 1
+			}
+
+			// Update the sorting order in the database
+			for (int i = 0; i < scripDataToSort.size(); i++) {
+				MwScripModel model = scripDataToSort.get(i);
 				for (int j = 0; j < mwList.size(); j++) {
-					MarketWatchScripDetailsDTO dbData = new MarketWatchScripDetailsDTO();
-					dbData = mwList.get(j);
+					MarketWatchScripDetailsDTO dbData = mwList.get(j);
 					if (dbData.getToken().equalsIgnoreCase(model.getToken())
 							&& dbData.getEx().equalsIgnoreCase(model.getExchange())) {
 						dbData.setSortingOrder(model.getSortingOrder());
@@ -513,13 +612,15 @@ public class MarketWatchService implements IMarketWatchService {
 					}
 				}
 			}
-			if (newScripDetails != null && newScripDetails.size() > 0) {
+
+			if (!newScripDetails.isEmpty()) {
 				int res = marketWatchDAO.updateMWScrips(newScripDetails, userId, mwId);
 				if (res > 0) {
 					System.out.println("Updated");
 				}
 			}
 		}
+
 		return prepareResponse.prepareMWSuccessResponseString(AppConstants.SORTING_ORDER);
 	}
 
@@ -530,30 +631,29 @@ public class MarketWatchService implements IMarketWatchService {
 			/*
 			 * Check the list not null or empty
 			 */
-			if (StringUtil.isListNotNullOrEmpty(parmDto.getScripData()) && parmDto.getMwId() > 0) {
+			if (StringUtil.isListNotNullOrEmpty(parmDto.getScripData())) {
 
-//				long result = marketWatchDAO.checkUserId(userId);
-//				if(result <= 0) {
-//					List<JSONObject> resp = create(userId);
-//					if (resp != null && resp.size() > 0) {
-//						return prepareResponse.prepareSuccessResponseObject(resp);
-//					} 
+//				if (parmDto.getMwId() > 0) {
+//					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW114,
+//							ErrorMessageConstants.INVALID_MWID);
 //				}
 				if (!commonUtils.isBetweenOneAndFive(parmDto.getMwId())) {
-					System.out.println(parmDto.getMwId() + " is not between 1 and 5.");
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
 							AppConstants.INVALID_MW_ID);
 				}
 
 				for (int i = 0; i < parmDto.getScripData().size(); i++) {
 					String exchange = parmDto.getScripData().get(i).getExchange();
-					if (StringUtil.isNullOrEmpty(exchange)) {
+					if (StringUtil.isNullOrEmpty(exchange.trim())) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_EXCH);
+					}
+					if (exchange == null || exchange.trim().isEmpty()) {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
 								ErrorMessageConstants.INVALID_EXCH);
 					}
 					// Check if exchange is null or invalid
 					if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
-						System.out.println(exchange + " this EXCH is Not Correct.");
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
 								ErrorMessageConstants.INVALID_EXCHANGE);
 					}
@@ -561,12 +661,15 @@ public class MarketWatchService implements IMarketWatchService {
 
 				for (int i = 0; i < parmDto.getScripData().size(); i++) {
 					String token = parmDto.getScripData().get(i).getToken();
-					if (StringUtil.isNullOrEmpty(token)) {
+					if (StringUtil.isNullOrEmpty(token.trim())) {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW118,
 								ErrorMessageConstants.TOKEN_EMTY_OR_NULL);
 					}
+					if (token == null || token.trim().isEmpty()) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_TOKEN);
+					}
 					if (!commonUtils.checkThisIsTheNumber(token.trim())) {
-						System.out.println(token + " this is Not Number.");
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
 								AppConstants.INVALID_TOKEN);
 					}
@@ -575,8 +678,8 @@ public class MarketWatchService implements IMarketWatchService {
 				Set<String> tokenSet = new HashSet<>(); // Initialize the Set outside the loop
 
 				for (MwScripModel data : parmDto.getScripData()) {
-					String token = data.getToken(); // Get the token
-					String exchange = data.getExchange();
+					String token = data.getToken().trim(); // Get the token
+					String exchange = data.getExchange().toUpperCase().trim();
 					// Check if the token is already in the Set
 					if (tokenSet.contains(token + exchange)) {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
@@ -590,13 +693,23 @@ public class MarketWatchService implements IMarketWatchService {
 				}
 
 				for (MwScripModel data : parmDto.getScripData()) {
-					String token = data.getToken(); // Get the token
-					String exchange = data.getExchange();
-					if (!HazelCacheController.getInstance().getContractMaster()
-							.containsKey(commonUtils.getExchangeNameContract(exchange.toUpperCase()) + "_" + token)) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-								ErrorMessageConstants.INVALID_TOKEN);
+					String token = data.getToken().trim();// Get the token
+					String exchange = data.getExchange().toUpperCase().trim();
+
+					if (properties.isExchfull()) {
+						if (!HazelCacheController.getInstance().getContractMaster().containsKey(
+								commonUtils.getExchangeNameContract(exchange.toUpperCase()) + "_" + token)) {
+							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+									ErrorMessageConstants.INVALID_TOKEN);
+						}
+					} else {
+						if (!HazelCacheController.getInstance().getContractMaster()
+								.containsKey(exchange.toUpperCase() + "_" + token)) {
+							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+									ErrorMessageConstants.INVALID_TOKEN);
+						}
 					}
+
 				}
 
 				int curentSortOrder = getExistingSortOrder(userId, parmDto.getMwId());
@@ -685,9 +798,15 @@ public class MarketWatchService implements IMarketWatchService {
 				MwScripModel result = new MwScripModel();
 				result = pDto.get(itr);
 				String token = result.getToken().trim();
-				String exchangeSegment = commonUtils
-						.getExchangeSegmentNameIIFL(result.getExchange().trim().toUpperCase());
-				String codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+				String codifiExchange = "";
+
+				if (properties.isExchfull()) {
+					String exchangeSegment = commonUtils
+							.getExchangeSegmentNameIIFL(result.getExchange().trim().toUpperCase());
+					codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+				} else {
+					codifiExchange = result.getExchange().trim().toUpperCase();
+				}
 
 				System.out.println(codifiExchange + "_" + token);
 				if (HazelCacheController.getInstance().getContractMaster().get(codifiExchange + "_" + token) != null) {
@@ -698,10 +817,17 @@ public class MarketWatchService implements IMarketWatchService {
 					fResult.setTradingSymbol(masterData.getTradingSymbol());
 					fResult.setFormattedInsName(masterData.getFormattedInsName());
 					fResult.setToken(masterData.getToken());
-					String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
-					fResult.setExchange(exchangeIifl);
-					String segmentIifl = commonUtils.getExchangeName(masterData.getSegment());
-					fResult.setSegment(segmentIifl);
+
+					if (properties.isExchfull()) {
+						String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
+						fResult.setExchange(exchangeIifl);
+						String segmentIifl = commonUtils.getExchangeName(masterData.getSegment());
+						fResult.setSegment(segmentIifl);
+					} else {
+						fResult.setExchange(masterData.getExch());
+						fResult.setSegment(masterData.getSegment());
+					}
+
 					fResult.setExpiry(masterData.getExpiry() == null ? "" : masterData.getExpiry().toString());
 					fResult.setSortOrder(result.getSortingOrder());
 					fResult.setPdc(masterData.getPdc());
@@ -838,8 +964,16 @@ public class MarketWatchService implements IMarketWatchService {
 			CacheMwDetailsModel model = scripDetails.get(i);
 			MarketWatchScripDetailsDTO resultDto = new MarketWatchScripDetailsDTO();
 			String token = model.getToken();
-			String exchangeSegment = commonUtils.getExchangeSegmentNameIIFL(model.getExchange().trim().toUpperCase());
-			String codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+
+			String codifiExchange = "";
+			if (properties.isExchfull()) {
+				String exchangeSegment = commonUtils
+						.getExchangeSegmentNameIIFL(model.getExchange().trim().toUpperCase());
+				codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+			} else {
+				codifiExchange = model.getExchange().trim().toUpperCase();
+			}
+
 			if (HazelCacheController.getInstance().getContractMaster().get(codifiExchange + "_" + token) != null) {
 				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
 						.get(codifiExchange + "_" + token);
@@ -890,7 +1024,6 @@ public class MarketWatchService implements IMarketWatchService {
 			if (StringUtil.isNotNullOrEmpty(useriD) && StringUtil.isListNotNullOrEmpty(dataToDelete) && mwId > 0) {
 
 				if (!commonUtils.isBetweenOneAndFive(pDto.getMwId())) {
-					System.out.println(pDto.getMwId() + " is not between 1 and 5.");
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
 							AppConstants.INVALID_MW_ID);
 				}
@@ -901,9 +1034,12 @@ public class MarketWatchService implements IMarketWatchService {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
 								ErrorMessageConstants.INVALID_EXCH);
 					}
+					if (exchange == null || exchange.trim().isEmpty()) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_EXCH);
+					}
 					// Check if exchange is null or invalid
 					if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
-						System.out.println(exchange + " this EXCH is Not Correct.");
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
 								ErrorMessageConstants.INVALID_EXCHANGE);
 					}
@@ -915,8 +1051,11 @@ public class MarketWatchService implements IMarketWatchService {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW118,
 								ErrorMessageConstants.TOKEN_EMTY_OR_NULL);
 					}
+					if (token == null || token.trim().isEmpty()) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_TOKEN);
+					}
 					if (!commonUtils.checkThisIsTheNumber(token.trim())) {
-						System.out.println(token + " this is Not Number.");
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
 								AppConstants.INVALID_TOKEN);
 					}
@@ -953,43 +1092,85 @@ public class MarketWatchService implements IMarketWatchService {
 	 * @param pUserId
 	 * @param userMwId
 	 */
+//	public void deleteFromCache(List<MwScripModel> dataToDelete, String pUserId, int userMwId) {
+//		if (dataToDelete != null && dataToDelete.size() > 0) {
+//			List<JSONObject> res = MwCacheController.getMwListUserId().get(pUserId);
+//			String marketWatchId = String.valueOf(userMwId);
+//			JSONObject result = null;
+//			int indexOfRes = 0;
+//			if (res != null && res.size() > 0) {
+//				for (int itr = 0; itr < res.size(); itr++) {
+//					result = new JSONObject();
+//					result = res.get(itr);
+//					String mwId = (String) result.get("mwId").toString();
+//					if (marketWatchId.equalsIgnoreCase(mwId)) {
+//						indexOfRes = itr;
+//						break;
+//					}
+//				}
+//				if (result != null && !result.isEmpty()) {
+//					List<CacheMwDetailsModel> scripDetails = (List<CacheMwDetailsModel>) result.get("scrips");
+//					if (scripDetails != null && scripDetails.size() > 0) {
+//						for (int i = 0; i < dataToDelete.size(); i++) {
+//							MwScripModel tempDTO = dataToDelete.get(i);
+//							String token = tempDTO.getToken().toUpperCase().trim();
+//							String exch = tempDTO.getExchange().toUpperCase().trim();
+//							for (int j = 0; j < scripDetails.size(); j++) {
+//								CacheMwDetailsModel tempScripDTO = scripDetails.get(j);
+//								String scripToken = tempScripDTO.getToken();
+//								String scripExch = tempScripDTO.getExchange();
+//								if (scripToken.equalsIgnoreCase(token) && scripExch.equalsIgnoreCase(exch)) {
+//									scripDetails.remove(j);
+//								}
+//							}
+//						}
+//						result.remove("scrips");
+//						result.put("scrips", scripDetails);
+//						res.remove(indexOfRes);
+//						res.add(indexOfRes, result);
+//						MwCacheController.getMwListUserId().remove(pUserId);
+//						MwCacheController.getMwListUserId().put(pUserId, res);
+//					}
+//				}
+//			}
+//		}
+//	}
+
 	public void deleteFromCache(List<MwScripModel> dataToDelete, String pUserId, int userMwId) {
-		if (dataToDelete != null && dataToDelete.size() > 0) {
+		if (dataToDelete != null && !dataToDelete.isEmpty()) {
 			List<JSONObject> res = MwCacheController.getMwListUserId().get(pUserId);
 			String marketWatchId = String.valueOf(userMwId);
 			JSONObject result = null;
-			int indexOfRes = 0;
-			if (res != null && res.size() > 0) {
+			int indexOfRes = -1;
+
+			if (res != null && !res.isEmpty()) {
 				for (int itr = 0; itr < res.size(); itr++) {
-					result = new JSONObject();
 					result = res.get(itr);
-					String mwId = (String) result.get("mwId").toString();
+					String mwId = result.get("mwId").toString();
 					if (marketWatchId.equalsIgnoreCase(mwId)) {
 						indexOfRes = itr;
 						break;
 					}
 				}
+
 				if (result != null && !result.isEmpty()) {
 					List<CacheMwDetailsModel> scripDetails = (List<CacheMwDetailsModel>) result.get("scrips");
-					if (scripDetails != null && scripDetails.size() > 0) {
-						for (int i = 0; i < dataToDelete.size(); i++) {
-							MwScripModel tempDTO = dataToDelete.get(i);
+					if (scripDetails != null && !scripDetails.isEmpty()) {
+						// Step 1: Remove the specified scrip(s)
+						for (MwScripModel tempDTO : dataToDelete) {
 							String token = tempDTO.getToken().toUpperCase().trim();
 							String exch = tempDTO.getExchange().toUpperCase().trim();
-							for (int j = 0; j < scripDetails.size(); j++) {
-								CacheMwDetailsModel tempScripDTO = scripDetails.get(j);
-								String scripToken = tempScripDTO.getToken();
-								String scripExch = tempScripDTO.getExchange();
-								if (scripToken.equalsIgnoreCase(token) && scripExch.equalsIgnoreCase(exch)) {
-									scripDetails.remove(j);
-								}
-							}
+							scripDetails.removeIf(tempScripDTO -> tempScripDTO.getToken().equalsIgnoreCase(token)
+									&& tempScripDTO.getExchange().equalsIgnoreCase(exch));
 						}
-						result.remove("scrips");
+
+						// Step 2: Recalculate and update the sorting order
+						for (int i = 0; i < scripDetails.size(); i++) {
+							scripDetails.get(i).setSortOrder(i + 1); // 1, 2, 3, 4, etc.
+						}
+
 						result.put("scrips", scripDetails);
-						res.remove(indexOfRes);
-						res.add(indexOfRes, result);
-						MwCacheController.getMwListUserId().remove(pUserId);
+						res.set(indexOfRes, result);
 						MwCacheController.getMwListUserId().put(pUserId, res);
 					}
 				}
@@ -1005,20 +1186,56 @@ public class MarketWatchService implements IMarketWatchService {
 	 * @param pUserId
 	 * @param userMwId
 	 */
+//	public void deleteFromDB(List<MwScripModel> dataToDelete, String pUserId, int userMwId) {
+//		ExecutorService pool = Executors.newSingleThreadExecutor();
+//		pool.execute(new Runnable() {
+//			@Override
+//			public void run() {
+//				try {
+//					if (dataToDelete != null && dataToDelete.size() > 0) {
+//						for (int i = 0; i < dataToDelete.size(); i++) {
+//							MwScripModel tempDTO = dataToDelete.get(i);
+//							String token = tempDTO.getToken().toUpperCase().trim();
+//							String exch = tempDTO.getExchange().toUpperCase().trim();
+//							marketWatchDAO.deleteScripFomDataBase(pUserId, commonUtils.getExchangeNameContract(exch),
+//									token, userMwId);
+//						}
+//					}
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				} finally {
+//					pool.shutdown();
+//				}
+//			}
+//		});
+//	}
+
 	public void deleteFromDB(List<MwScripModel> dataToDelete, String pUserId, int userMwId) {
 		ExecutorService pool = Executors.newSingleThreadExecutor();
 		pool.execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					if (dataToDelete != null && dataToDelete.size() > 0) {
-						for (int i = 0; i < dataToDelete.size(); i++) {
-							MwScripModel tempDTO = dataToDelete.get(i);
+					if (dataToDelete != null && !dataToDelete.isEmpty()) {
+						for (MwScripModel tempDTO : dataToDelete) {
 							String token = tempDTO.getToken().toUpperCase().trim();
 							String exch = tempDTO.getExchange().toUpperCase().trim();
 							marketWatchDAO.deleteScripFomDataBase(pUserId, commonUtils.getExchangeNameContract(exch),
 									token, userMwId);
 						}
+					}
+
+					// Step 1: Retrieve remaining scrips after deletion
+					List<MarketWatchScripDetailsDTO> mwList = marketWatchDAO.findAllByUserIdAndMwId(pUserId, userMwId);
+
+					// Step 2: Recalculate the sorting order
+					for (int i = 0; i < mwList.size(); i++) {
+						mwList.get(i).setSortingOrder(i + 1); // Update sort order to 1, 2, 3, 4, ...
+					}
+
+					// Step 3: Update the database with new sort order
+					if (!mwList.isEmpty()) {
+						marketWatchDAO.updateMWScrips(mwList, pUserId, userMwId);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -1123,21 +1340,23 @@ public class MarketWatchService implements IMarketWatchService {
 	/**
 	 * Method to getIndices
 	 * 
+	 * @author Vicky
+	 * 
 	 */
 	@Override
 	public JSONObject getIndices() {
 		JSONObject json = new JSONObject();
 		List<IndexModel> response = new ArrayList<>();
 
-		if (getIndexData.get(AppConstants.GET_INDEX) != null) {
-			response = getIndexData.get(AppConstants.GET_INDEX);
+		if (MwCacheController.getGetIndexData().get(AppConstants.GET_INDEX) != null) {
+			response = MwCacheController.getGetIndexData().get(AppConstants.GET_INDEX);
 			System.out.println("Cache Data");
 			json.put("status", "Ok");
 			json.put("message", "Success");
 			json.put("Indices", response);
 		} else {
 			List<IndexModel> result = marketWatchDAO.getIndicesList();
-			getIndexData.put(AppConstants.GET_INDEX, result);
+			MwCacheController.getGetIndexData().put(AppConstants.GET_INDEX, result);
 			if (result.size() > 0) {
 				json.put("status", "Ok");
 				json.put("message", "Success");
@@ -1207,21 +1426,33 @@ public class MarketWatchService implements IMarketWatchService {
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
 						ErrorMessageConstants.INVALID_EXCHANGE_SEGMENT);
 			}
-			if (!commonUtils.checkThisIsTheNumber(model.getToken())) {
+			if (!commonUtils.checkThisIsTheNumber(model.getToken().trim())) {
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107, AppConstants.INVALID_TOKEN);
 			}
 
-			String exchangeSegment = commonUtils.getExchangeSegmentNameIIFL(model.getExchange().trim().toUpperCase());
-			String codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+			String codifiExchange = "";
+			if (properties.isExchfull()) {
+				String exchangeSegment = commonUtils
+						.getExchangeSegmentNameIIFL(model.getExchange().trim().toUpperCase());
+				codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+			} else {
+				codifiExchange = model.getExchange().trim().toUpperCase();
+			}
 
 			if (HazelCacheController.getInstance().getContractMaster()
-					.get(codifiExchange + "_" + model.getToken()) != null) {
+					.get(codifiExchange + "_" + model.getToken().trim()) != null) {
 				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-						.get(codifiExchange + "_" + model.getToken());
+						.get(codifiExchange + "_" + model.getToken().trim());
 				SecurityInfoRespModel infoResult = new SecurityInfoRespModel();
 				String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
 				infoResult.setIsin(StringUtil.isNullOrEmpty(codifiExchange) ? "" : masterData.getIsin());
-				infoResult.setExchange(exchangeIifl);
+
+				if (properties.isExchfull()) {
+					infoResult.setExchange(exchangeIifl);
+				} else {
+					infoResult.setExchange(masterData.getExch());
+				}
+
 				infoResult.setToken(masterData.getToken());
 				infoResult.setTradingSymbol(masterData.getTradingSymbol());
 				infoResult.setLotSize(masterData.getLotSize());
@@ -1283,8 +1514,7 @@ public class MarketWatchService implements IMarketWatchService {
 	 * @return
 	 */
 	private boolean validateSecurityInfoParameters(SecurityInfoReqModel model) {
-		if (StringUtil.isNotNullOrEmpty(model.getExchange()) && StringUtil.isNotNullOrEmpty(model.getToken())
-				&& StringUtil.isNotNullOrEmpty(model.getSegment())) {
+		if (StringUtil.isNotNullOrEmpty(model.getExchange()) && StringUtil.isNotNullOrEmpty(model.getToken())) {
 			return true;
 		}
 		return false;

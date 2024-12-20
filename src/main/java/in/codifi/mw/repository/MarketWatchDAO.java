@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 
 import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.cache.HazelCacheController;
+import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.entity.MarketWatchNameDTO;
 import in.codifi.mw.entity.MarketWatchScripDetailsDTO;
 import in.codifi.mw.model.CacheMwDetailsModel;
@@ -41,6 +42,9 @@ public class MarketWatchDAO {
 	@Inject
 	CommonUtils commonUtils;
 
+	@Inject
+	ApplicationProperties properties;
+	
 	/**
 	 * Method to find mw name by user id
 	 * 
@@ -678,20 +682,26 @@ public class MarketWatchDAO {
 		ResultSet rSet = null;
 		try {
 			conn = entityManager.getConnection();
-			String query = "SELECT pdc,exch,exchange_segment,symbol FROM tbl_global_contract_master_details where instrument_type ='INDEX' ";
+			String query = "SELECT pdc,exch,exchange_segment,symbol,token FROM tbl_global_contract_master_details where instrument_type ='INDEX' ";
 			pStmt = conn.prepareStatement(query);
 			rSet = pStmt.executeQuery();
 			if (rSet != null) {
 				while (rSet.next()) {
 					IndexModel model = new IndexModel();
 					model.setClosingIndex(rSet.getString("pdc"));
-					String exchangeIifl = commonUtils.getExchangeNameIIFL(rSet.getString("exch"));
-					model.setExchange(exchangeIifl);
-					String segmentIifl = commonUtils.getExchangeName(rSet.getString("exchange_segment"));
-					model.setSegment(segmentIifl);
+					if (properties.isExchfull()) {
+						String exchangeIifl = commonUtils.getExchangeNameIIFL(rSet.getString("exch"));
+						model.setExchange(exchangeIifl);
+						String segmentIifl = commonUtils.getExchangeName(rSet.getString("exchange_segment"));
+						model.setSegment(segmentIifl);
+					}else {
+						model.setExchange(rSet.getString("exch"));
+						model.setSegment(rSet.getString("exchange_segment"));
+					}
+					
 					model.setIndexName(rSet.getString("symbol"));
-					model.setIndexValue(rSet.getString("pdc"));
-					model.setIndiceID(rSet.getString("pdc"));
+					model.setIndexValue("");
+					model.setIndiceID(rSet.getString("token"));
 					response.add(model);
 				}
 			}
