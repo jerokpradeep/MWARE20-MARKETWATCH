@@ -87,7 +87,9 @@ public class AppConstants {
 	public static final String MARKET_WATCH_LIST_NAME = "Watchlist";
 	public static final int MW_SIZE = 5;
 	public static final String PREDEFINED_MW = "PreDefinedMWList";
-
+	public static final String HOLDINGS_MW = "HoldingsMWList";
+	public static final String POSITION_MW = "PostionsMWList";
+	
 	public static final String TEMP_USER_ID = "CD-ADMIN";
 
 	public static final String MODULE_MW = "Marketwatch";
@@ -116,4 +118,12 @@ public class AppConstants {
 	public static final String INVALID_CURRENT_PAGE = "Invalid Current Page";
 	public static final String GET_INDEX = "GetIndex";
 	public static final String NO_DATA = "No Data";
+	public static final String TOKEN_NOT_EXISTS = "The token does not exists";
+
+	public static final String HOLDING_MW_ID = "101";
+	public static final String HOLDING_MW_NAME = "Holdings";
+	
+	public static final String POSITION_MW_ID = "102";
+	public static final String POSITION_MW_NAME = "Positions";
+	
 }

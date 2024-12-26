@@ -75,7 +75,7 @@ public class CommonUtils {
 	 * @return
 	 */
 	public boolean isBetweenOneAndFive(int mwId) {
-		return mwId >= 1 && mwId <= 5;
+		return mwId >= 302 && mwId <= 306;
 	}
 
 	public String getExchangeName(String exchSeg) {

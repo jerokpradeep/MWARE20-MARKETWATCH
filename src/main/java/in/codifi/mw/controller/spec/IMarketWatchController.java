@@ -11,6 +11,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.json.simple.JSONObject;
 
+import in.codifi.mw.model.GetContractInfoReqModel;
 import in.codifi.mw.model.MwCommodityContarctModel;
 import in.codifi.mw.model.MwIndicesModel;
 import in.codifi.mw.model.MwRequestModel;
@@ -130,4 +131,22 @@ public interface IMarketWatchController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	RestResponse<ResponseModel> getSecurityInfo(SecurityInfoReqModel model);
+
+	@Path("/contract/info")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@APIResponse(description = "Get contract info")
+	RestResponse<ResponseModel> getContractInfo(GetContractInfoReqModel reqModel);
+
+	/**
+	 * @param pDto
+	 * @return
+	 */
+	@Path("/getAllMwScripsDetails")
+	@GET
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@APIResponse(description = "Get Scrip details for given user id .")
+	RestResponse<ResponseModel> getAllMwScripsMob(MwRequestModel pDto);
 }
