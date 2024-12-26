@@ -13,6 +13,8 @@ import com.hazelcast.core.HazelcastInstance;
 
 import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.model.PnlLotModel;
+import in.codifi.mw.model.PromptModel;
+import in.codifi.mw.model.RecentlyViewedModel;
 import in.codifi.mw.model.ScripSearchResp;
 import in.codifi.mw.model.VendorDTO;
 import lombok.Getter;
@@ -52,7 +54,7 @@ public class HazelcastConfig {
 	private Map<String, ContractMasterModel> contractMaster = getHz().getMap("contractMaster");
 	private Map<String, String> isinKB = getHz().getMap("isinKB");
 	private Map<String, List<PnlLotModel>> pnlLot = getHz().getMap("pnlLot");
-	private Map<String, String> isinByTokenKB = getHz().getMap("isinByTokenKB");
+	private Map<String, String> isinByToken = getHz().getMap("isinByToken");
 	private Map<String, String> tradingSymbolTokenMapKB = getHz().getMap("tradingSymbolTokenMapKB");
 	private Map<String, VendorDTO> ssoSessionMapping = getHz().getMap("ssoSessionMapping");
 	
@@ -60,5 +62,9 @@ public class HazelcastConfig {
 	private Map<Integer, List<String>> distinctSymbols = getHz().getMap("distinctSymbols");
 	private Map<String, List<ScripSearchResp>> loadedSearchData = getHz().getMap("loadedSearchData");
 	private Map<String, ScripSearchResp> indexDetails = getHz().getMap("indexDetails");
+	
+	private Map<String, List<PromptModel>> promptMaster = getHz().getMap("promptMaster");
+	private Map<String, List<RecentlyViewedModel>> recentlyViewed = getHz().getMap("recentlyViewed");
+
 
 }

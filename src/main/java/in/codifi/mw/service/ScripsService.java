@@ -12,14 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.config.HazelcastConfig;
+import in.codifi.mw.entity.secondary.RecentlyViewedEntity;
 import in.codifi.mw.model.ClinetInfoModel;
 import in.codifi.mw.model.ErrorResponseModel;
-import in.codifi.mw.model.RecentlyViewedEntity;
 import in.codifi.mw.model.RecentlyViewedModel;
 import in.codifi.mw.model.ResponseModel;
 import in.codifi.mw.model.ScripSearchResp;
@@ -35,7 +36,6 @@ import in.codifi.mw.util.ErrorMessageConstants;
 import in.codifi.mw.util.PrepareResponse;
 import in.codifi.mw.util.StringUtil;
 import io.quarkus.logging.Log;
-import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * @author Vicky

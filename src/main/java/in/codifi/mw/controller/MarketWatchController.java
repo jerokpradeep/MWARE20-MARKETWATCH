@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 
 import in.codifi.mw.controller.spec.IMarketWatchController;
 import in.codifi.mw.model.ClinetInfoModel;
+import in.codifi.mw.model.GetContractInfoReqModel;
 import in.codifi.mw.model.MwCommodityContarctModel;
 import in.codifi.mw.model.MwIndicesModel;
 import in.codifi.mw.model.MwRequestModel;
@@ -243,6 +244,12 @@ public class MarketWatchController implements IMarketWatchController {
 		return iMarketWatchService.getcommodityContarct(pDto);
 	}
 
+	/**
+	 * method to getSecurityInfo Details
+	 * 
+	 * @author Vicky
+	 * 
+	 */
 	@Override
 	public RestResponse<ResponseModel> getSecurityInfo(SecurityInfoReqModel model) {
 
@@ -255,5 +262,46 @@ public class MarketWatchController implements IMarketWatchController {
 			return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
 		}
 		return iMarketWatchService.getSecurityInfo(model, info);
+	}
+	
+	
+	/***
+	 * 
+	 */
+	@Override
+	public RestResponse<ResponseModel> getContractInfo(GetContractInfoReqModel reqModel) {
+		if (reqModel == null)
+			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+
+		ClinetInfoModel info = appUtil.getClientInfo();
+		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
+			Log.error("Client info is null");
+			return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
+		}
+		return iMarketWatchService.getContractInfo(reqModel,info);
+	}
+	
+	
+	/**
+	 * 
+	 * @param pDto
+	 * @return
+	 */
+	@Override
+	public RestResponse<ResponseModel> getAllMwScripsMob(MwRequestModel pDto) {
+		System.out.println("getAllMwScripsMob - controller");
+//		boolean isValid = validateRequestService.isValidUser(pDto);
+//		if (isValid) {
+//			return codifiMwService.getAllMwScripsMob(pDto.getUserId(), pDto.isPredefined());
+//		} else {
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
+		
+		ClinetInfoModel info = appUtil.getClientInfo();
+		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
+			Log.error("Client info is null");
+			return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
+		}
+		return iMarketWatchService.getAllMwScripsMob(info.getUserId(), true);
 	}
 }

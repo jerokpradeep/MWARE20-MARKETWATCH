@@ -1,20 +1,23 @@
 package in.codifi.mw.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,23 +28,38 @@ import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.cache.HazelCacheController;
 import in.codifi.mw.cache.MwCacheController;
 import in.codifi.mw.config.ApplicationProperties;
+import in.codifi.mw.config.HazelcastConfig;
+import in.codifi.mw.entity.HoldingsDataMwEntity;
+import in.codifi.mw.entity.HoldingsMwEntity;
 import in.codifi.mw.entity.MarketWatchNameDTO;
 import in.codifi.mw.entity.MarketWatchScripDetailsDTO;
+import in.codifi.mw.entity.PositionDataMwEntity;
+import in.codifi.mw.entity.PredefinedMwEntity;
+import in.codifi.mw.entity.PredefinedMwScripsEntity;
+import in.codifi.mw.entity.secondary.RecentlyViewedEntity;
 import in.codifi.mw.model.Badge;
 import in.codifi.mw.model.CacheMwDetailsModel;
 import in.codifi.mw.model.ClinetInfoModel;
+import in.codifi.mw.model.ContractInfoDetails;
+import in.codifi.mw.model.ContractInfoRespModel;
+import in.codifi.mw.model.GetContractInfoReqModel;
 import in.codifi.mw.model.IndexModel;
 import in.codifi.mw.model.MwCommodityContarctModel;
 import in.codifi.mw.model.MwRequestModel;
 import in.codifi.mw.model.MwScripModel;
 import in.codifi.mw.model.ProductLeverage;
 import in.codifi.mw.model.Prompt;
+import in.codifi.mw.model.PromptModel;
 import in.codifi.mw.model.ResponseModel;
 import in.codifi.mw.model.SecurityInfoReqModel;
 import in.codifi.mw.model.SecurityInfoRespModel;
 import in.codifi.mw.model.SpotData;
 import in.codifi.mw.model.badgeModel;
+import in.codifi.mw.repository.HoldingsMwRepo;
 import in.codifi.mw.repository.MarketWatchDAO;
+import in.codifi.mw.repository.PositionMwRepo;
+import in.codifi.mw.repository.PredefinedMwRepo;
+import in.codifi.mw.repository.RecentlyViewedRepository;
 import in.codifi.mw.service.spec.IMarketWatchService;
 import in.codifi.mw.util.AppConstants;
 import in.codifi.mw.util.CommonUtils;
@@ -63,6 +81,14 @@ public class MarketWatchService implements IMarketWatchService {
 	ApplicationProperties properties;
 	@Inject
 	CommonUtils commonUtils;
+	@Inject
+	RecentlyViewedRepository recentlyViewedRepository;
+	@Inject
+	PredefinedMwRepo predefinedMwRepo;
+	@Inject
+	HoldingsMwRepo holdingsMwRepo;
+	@Inject
+	PositionMwRepo positionMwRepo;
 
 	/**
 	 * Method to Create Mw in Auto and manual
@@ -81,10 +107,13 @@ public class MarketWatchService implements IMarketWatchService {
 						List<MarketWatchNameDTO> newMwList = new ArrayList<MarketWatchNameDTO>();
 						// TODO change hot code value
 						int mwListSize = Integer.parseInt(properties.getMwSize());
+						int mwId = 301;
 						for (int i = 0; i < mwListSize; i++) {
+							mwId = mwId + 1;
+							System.out.println("mwId>>>>>" + mwId);
 							MarketWatchNameDTO newDto = new MarketWatchNameDTO();
 							newDto.setUserId(pUserId);
-							newDto.setMwId(i + 1);
+							newDto.setMwId(mwId);
 							newDto.setMwName(AppConstants.MARKET_WATCH_LIST_NAME + (i + 1));
 							newDto.setPosition(Long.valueOf(i));
 							newMwList.add(newDto);
@@ -633,10 +662,6 @@ public class MarketWatchService implements IMarketWatchService {
 			 */
 			if (StringUtil.isListNotNullOrEmpty(parmDto.getScripData())) {
 
-//				if (parmDto.getMwId() > 0) {
-//					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW114,
-//							ErrorMessageConstants.INVALID_MWID);
-//				}
 				if (!commonUtils.isBetweenOneAndFive(parmDto.getMwId())) {
 					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
 							AppConstants.INVALID_MW_ID);
@@ -1307,17 +1332,20 @@ public class MarketWatchService implements IMarketWatchService {
 			if (StringUtil.isNotNullOrEmpty(pUserId)) {
 				/* Check user has how many market watch */
 				List<MarketWatchNameDTO> mwList = marketWatchDAO.findAllByUserId(pUserId);
-				List<MarketWatchNameDTO> newMwList = new ArrayList<>();
 				System.out.println("create mw for user - " + pUserId + "and count - " + mwList.size());
 				/* If null or size is lesser than 5 create a new Market Watch */
 				if (mwList == null || mwList.size() == 0) {
+					List<MarketWatchNameDTO> newMwList = new ArrayList<>();
 					System.out.println("create new mw for user - " + pUserId);
 					/* Create the new Market Watch */
 					int mwListSize = Integer.parseInt(properties.getMwSize());
+					int mwId = 301;
 					for (int i = 0; i < mwListSize; i++) {
+						mwId = mwId + 1;
+						System.out.println("<<<<mwId>>>>>" + mwId);
 						MarketWatchNameDTO newDto = new MarketWatchNameDTO();
 						newDto.setUserId(pUserId);
-						newDto.setMwId(i + 1);
+						newDto.setMwId(mwId);
 						newDto.setMwName(AppConstants.MARKET_WATCH_LIST_NAME + (i + 1));
 						newDto.setPosition(Long.valueOf(i));
 						newMwList.add(newDto);
@@ -1520,4 +1548,557 @@ public class MarketWatchService implements IMarketWatchService {
 		return false;
 	}
 
+	/**
+	 * Method to save the scrips into the recently viewed Database
+	 * 
+	 * @author Gowrisankar
+	 * @return
+	 */
+	private boolean saveRecentlyViewedScrips(String pExchange, String pToken, String pUserId, Date expiryDate) {
+		boolean isSaved = false;
+		try {
+			ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
+					.get(pExchange + "_" + pToken);
+			if (ObjectUtils.isNotEmpty(contractMasterModel)) {
+				/*
+				 * Check the data's are present for the given user Id into the Database
+				 */
+				List<RecentlyViewedEntity> recentlyViewedData = recentlyViewedRepository
+						.findAllByUserIdOrderBySortOrderAsc(pUserId);
+				if (recentlyViewedData != null && recentlyViewedData.size() > 0) {
+					List<RecentlyViewedEntity> savingList = new ArrayList<>();
+					RecentlyViewedEntity tempRecentlyViewed = new RecentlyViewedEntity();
+					tempRecentlyViewed.setUserId(pUserId);
+					tempRecentlyViewed.setExch(pExchange);
+					tempRecentlyViewed.setToken(pToken);
+					tempRecentlyViewed.setSortOrder(0);
+					if (expiryDate != null) {
+						tempRecentlyViewed.setExpiryDate(expiryDate);
+					}
+					savingList.add(tempRecentlyViewed);
+					/*
+					 * Get the size of the recently viewed data
+					 */
+					int dataSize = recentlyViewedData.size();
+					if (dataSize >= 25) {
+						/*
+						 * if data size is > 25 delete the first inserted data and save the given data
+						 */
+						recentlyViewedData.remove(dataSize);
+						dataSize = dataSize - 1;
+					}
+					int count = 1;
+					for (int itr = 0; itr < dataSize; itr++) {
+						RecentlyViewedEntity result = recentlyViewedData.get(itr);
+						String tempExch = result.getExch();
+						String tempToken = result.getToken();
+						if (tempExch.equalsIgnoreCase(pExchange) && tempToken.equalsIgnoreCase(pToken)) {
+							/*
+							 * Don't do nothing
+							 */
+						} else {
+							count = count + itr;
+							RecentlyViewedEntity recentlyViewed = new RecentlyViewedEntity();
+							recentlyViewed.setUserId(pUserId);
+							recentlyViewed.setExch(tempExch);
+							recentlyViewed.setToken(tempToken);
+							recentlyViewed.setSortOrder(count);
+							recentlyViewed.setCreatedOn(result.getCreatedOn());
+							recentlyViewed.setUpdatedOn(result.getUpdatedOn());
+							if (expiryDate != null) {
+								tempRecentlyViewed.setExpiryDate(expiryDate);
+							}
+							savingList.add(recentlyViewed);
+						}
+					}
+					if (savingList != null && savingList.size() > 0) {
+						recentlyViewedRepository.deleteAllByUserId(pUserId);
+						recentlyViewedRepository.saveAll(savingList);
+					}
+				} else {
+					/*
+					 * If there is no recently view in the database add it the new data entry
+					 */
+					RecentlyViewedEntity tempRecentlyViewed = new RecentlyViewedEntity();
+					tempRecentlyViewed.setUserId(pUserId);
+					tempRecentlyViewed.setExch(pExchange);
+					tempRecentlyViewed.setToken(pToken);
+					tempRecentlyViewed.setSortOrder(0);
+					recentlyViewedRepository.save(tempRecentlyViewed);
+					recentlyViewedRepository.flush();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return isSaved;
+	}
+
+	/**
+	 * 
+	 */
+	@Override
+	public RestResponse<ResponseModel> getContractInfo(GetContractInfoReqModel model, ClinetInfoModel info) {
+		try {
+			ContractInfoRespModel response = new ContractInfoRespModel();
+			List<ContractInfoDetails> detailsList = new ArrayList<>();
+			if (model != null && StringUtil.isNotNullOrEmpty(model.getToken())
+					&& StringUtil.isNotNullOrEmpty(model.getExch())) {
+				String token = model.getToken();
+				String exch = model.getExch().toUpperCase();
+				ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
+						.get(exch + "_" + token);
+				if (ObjectUtils.isNotEmpty(contractMasterModel)) {
+					ContractInfoDetails details = prepareContractInfoResp(contractMasterModel);
+					detailsList.add(details);
+
+					/** To add alter token details **/
+					if (contractMasterModel != null && (exch.equalsIgnoreCase("NSE") || exch.equalsIgnoreCase("BSE"))
+							&& StringUtil.isNotNullOrEmpty(contractMasterModel.getAlterToken())) {
+						String altExch = exch.equalsIgnoreCase("BSE") ? "NSE" : "BSE";
+
+						ContractMasterModel alterContractMasterModel = HazelcastConfig.getInstance().getContractMaster()
+								.get(altExch + "_" + contractMasterModel.getAlterToken());
+						if (alterContractMasterModel != null) {
+							ContractInfoDetails altDetails = prepareContractInfoResp(alterContractMasterModel);
+							detailsList.add(altDetails);
+						}
+					}
+					response.setFreezeQty(contractMasterModel.getFreezQty());
+					response.setIsin(contractMasterModel.getIsin());
+					response.setScrips(detailsList);
+
+					String userId = info.getUserId();
+					if (StringUtil.isNotNullOrEmpty(userId)) {
+						saveRecentlyViewedScrips(exch, model.getToken(), userId, contractMasterModel.getExpiry());
+					}
+					return prepareResponse.prepareSuccessResponseObject(response);
+				} else {
+					return prepareResponse.prepareFailedResponse(AppConstants.TOKEN_NOT_EXISTS);
+				}
+			} else {
+				return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		}
+
+		return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
+	}
+
+	/**
+	 * 
+	 * @param model
+	 * @return
+	 */
+	private ContractInfoDetails prepareContractInfoResp(ContractMasterModel model) {
+		ContractInfoDetails details = new ContractInfoDetails();
+
+		/** To add prompt message **/
+		if (model != null && (model.getExch().equalsIgnoreCase("NSE") || model.getExch().equalsIgnoreCase("BSE"))) {
+			if (HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch()) != null
+					&& HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch())
+							.size() > 0) {
+				List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMaster()
+						.get(model.getIsin() + "_" + model.getExch());
+				if (prompt != null && prompt.size() > 0) {
+					details.setPrompt(prompt);
+				}
+			}
+		}
+		details.setExchange(model.getExch());
+		details.setLotSize(model.getLotSize());
+		details.setTickSize(model.getTickSize());
+		details.setToken(model.getToken());
+		details.setTradingSymbol(model.getTradingSymbol());
+		details.setSymbol(model.getSymbol());
+		details.setFormattedInsName(model.getFormattedInsName());
+		details.setPdc(model.getPdc());
+		details.setInsType(model.getInsType());
+		details.setExpiry(model.getExpiry());
+		return details;
+	}
+
+	/***
+	 * method to Get all Mw List Predefined and Holdings , Positions Added
+	 * 
+	 * @author Vicky
+	 * 
+	 */
+	@Override
+	public RestResponse<ResponseModel> getAllMwScripsMob(String pUserId, boolean predefined) {
+		try {
+			/*
+			 * Check the user has the scrips in cache or not
+			 */
+			List<JSONObject> result = MwCacheController.getMwListUserId().get(pUserId);
+			if (result != null && result.size() > 0) {
+				/*
+				 * if cache is there return from then return from cache
+				 */
+				System.out.println("getAllMwScripsMob - result from cache-" + pUserId);
+				if (predefined == true) {
+					List<JSONObject> predefinedMW = preparePredefinedMw(predefined, pUserId);
+					List<JSONObject> combinedList = Stream.concat(predefinedMW.stream(), result.stream())
+							.collect(Collectors.toList());
+
+					List<JSONObject> holdingsMW = preparHoldingMw(pUserId);
+					List<JSONObject> holdingsResult = Stream.concat(combinedList.stream(), holdingsMW.stream())
+							.collect(Collectors.toList());
+
+					List<JSONObject> postionMW = preparPostionMw(pUserId);
+					List<JSONObject> postionsResult = Stream.concat(holdingsResult.stream(), postionMW.stream())
+							.collect(Collectors.toList());
+
+					return prepareResponse.prepareSuccessResponseObject(postionsResult);
+
+				}
+				return prepareResponse.prepareSuccessResponseObject(result);
+			} else {
+				/*
+				 * take the scrip details from the Data base for the user
+				 */
+//				List<IMwTblResponse> scripDetails = mwNameRepo.getUserScripDetails(pUserId);
+				System.out.println("getAllMwScripsMob - getting result from DB-" + pUserId);
+				List<CacheMwDetailsModel> scripDetails = marketWatchDAO.getMarketWatchByUserId(pUserId);
+
+				if (scripDetails != null && scripDetails.size() > 0) {
+					/*
+					 * Populate the filed for Marketwatch as per the requirement
+					 */
+					System.out.println("getAllMwScripsMob - result from DB-" + pUserId);
+					List<JSONObject> tempResult = populateFields(scripDetails, pUserId);
+					if (tempResult != null && !tempResult.isEmpty()) {
+						if (predefined == true) {
+							List<JSONObject> predefinedMW = preparePredefinedMw(predefined, pUserId);
+							List<JSONObject> combinedList = Stream.concat(predefinedMW.stream(), tempResult.stream())
+									.collect(Collectors.toList());
+
+							List<JSONObject> holdingsMW = preparHoldingMw(pUserId);
+							List<JSONObject> holdingsResult = Stream.concat(combinedList.stream(), holdingsMW.stream())
+									.collect(Collectors.toList());
+
+							List<JSONObject> postionMW = preparPostionMw(pUserId);
+							List<JSONObject> postionsResult = Stream.concat(holdingsResult.stream(), postionMW.stream())
+									.collect(Collectors.toList());
+
+							return prepareResponse.prepareSuccessResponseObject(postionsResult);
+
+						}
+						return prepareResponse.prepareSuccessResponseObject(tempResult);
+					}
+				} else {
+
+					/**
+					 * Create New market watch if does not exist
+					 */
+					System.out.println("getAllMwScripsMob - Failed to get data from DB and create new-" + pUserId);
+					List<JSONObject> resp = create(pUserId);
+					if (predefined == true) {
+						List<JSONObject> predefinedMW = preparePredefinedMw(predefined, pUserId);
+						List<JSONObject> combinedList = Stream.concat(predefinedMW.stream(), resp.stream())
+								.collect(Collectors.toList());
+
+						List<JSONObject> holdingsMW = preparHoldingMw(pUserId);
+						List<JSONObject> holdingsResult = Stream.concat(combinedList.stream(), holdingsMW.stream())
+								.collect(Collectors.toList());
+
+						List<JSONObject> postionMW = preparPostionMw(pUserId);
+						List<JSONObject> postionsResult = Stream.concat(holdingsResult.stream(), postionMW.stream())
+								.collect(Collectors.toList());
+
+						return prepareResponse.prepareSuccessResponseObject(postionsResult);
+
+					}
+					if (resp != null && !resp.isEmpty()) {
+						return prepareResponse.prepareSuccessResponseObject(resp);
+					} else {
+						return prepareResponse.prepareFailedResponse(AppConstants.NO_MW);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		}
+		return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
+	}
+
+	/***
+	 * 
+	 * @param predefined
+	 * @param userId
+	 * @return
+	 */
+	private List<JSONObject> preparePredefinedMw(boolean predefined, String userId) {
+		List<JSONObject> predefinedMW = new ArrayList<>();
+		try {
+			List<PredefinedMwEntity> predefinedMwEntities = new ArrayList<>();
+			List<PredefinedMwEntity> userPredefinedMwEntities = new ArrayList<>();
+
+			/** Get predefined mw list from cache or DB **/
+			if (MwCacheController.getMasterPredefinedMwList().get(AppConstants.PREDEFINED_MW) != null) {
+				predefinedMwEntities = MwCacheController.getMasterPredefinedMwList().get(AppConstants.PREDEFINED_MW);
+			} else {
+				predefinedMwEntities = predefinedMwRepo.findAll();
+			}
+
+			userPredefinedMwEntities.addAll(predefinedMwEntities);
+
+			if (StringUtil.isListNotNullOrEmpty(userPredefinedMwEntities)) {
+				List<PredefinedMwEntity> sortedLists = userPredefinedMwEntities.stream()
+						.sorted(Comparator.comparing(PredefinedMwEntity::getPosition)).collect(Collectors.toList());
+				predefinedMW = preparePredefinedMWList(sortedLists);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		}
+		return predefinedMW;
+	}
+
+	/***
+	 * 
+	 * @param predefinedMw
+	 * @return
+	 */
+	private List<JSONObject> preparePredefinedMWList(List<PredefinedMwEntity> predefinedMw) {
+		List<JSONObject> predefinedMW = new ArrayList<>();
+		for (PredefinedMwEntity preMW : predefinedMw) {
+			List<JSONObject> predefinedMWScrips = new ArrayList<>();
+			JSONObject jObj1 = new JSONObject();
+			jObj1.put("mwId", preMW.getMwId());
+			jObj1.put("mwName", preMW.getMwName());
+//			jObj1.put("position", preMW.getPosition());
+			jObj1.put("isRename", false);
+			jObj1.put("isDefault", false);
+			jObj1.put("isEdit", false);
+
+			for (PredefinedMwScripsEntity scrips : preMW.getScrips()) {
+				if (HazelCacheController.getInstance().getContractMaster()
+						.get(scrips.getExchange() + "_" + scrips.getToken()) != null) {
+					ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
+							.get(scrips.getExchange() + "_" + scrips.getToken());
+
+					JSONObject obj = new JSONObject();
+					if (properties.isExchfull()) {
+						String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
+						obj.put("exchange", exchangeIifl);
+						String segmentIifl = commonUtils.getExchangeName(masterData.getSegment());
+						obj.put("segment", segmentIifl);
+					} else {
+						obj.put("exchange", masterData.getExch());
+						obj.put("segment", masterData.getSegment());
+					}
+//					obj.put("exchange", scrips.getExchange());
+//					obj.put("segment", masterData.getSegment());
+					obj.put("token", masterData.getToken());
+					obj.put("tradingSymbol", masterData.getTradingSymbol());
+					obj.put("formattedInsName", masterData.getFormattedInsName());
+					obj.put("sortOrder", scrips.getSortOrder());
+					obj.put("pdc", masterData.getPdc());
+					obj.put("symbol", masterData.getSymbol());
+					if (masterData.getExpiry() != null) {
+						Date expiry = masterData.getExpiry();
+						String expDate = new SimpleDateFormat("YYYY-MM-dd").format(expiry);
+						obj.put("expiry", expDate);
+					}
+					obj.put("weekTag", masterData.getWeekTag());
+					predefinedMWScrips.add(obj);
+				}
+			}
+			jObj1.put("scrips", predefinedMWScrips);
+			predefinedMW.add(jObj1);
+		}
+		return predefinedMW;
+	}
+
+	/***
+	 * 
+	 * @param predefined
+	 * @param userId
+	 * @return
+	 */
+
+	private List<JSONObject> preparHoldingMw(String userId) {
+		List<JSONObject> predefinedMW = new ArrayList<>();
+		try {
+			List<HoldingsDataMwEntity> predefinedMwEntities = new ArrayList<>();
+			List<HoldingsDataMwEntity> userPredefinedMwEntities = new ArrayList<>();
+
+			/** Get predefined mw list from cache or DB **/
+			if (MwCacheController.getMasterHoldingsMwList().get(AppConstants.HOLDINGS_MW) != null) {
+				predefinedMwEntities = MwCacheController.getMasterHoldingsMwList().get(AppConstants.HOLDINGS_MW);
+			} else {
+				predefinedMwEntities = holdingsMwRepo.findByUserId(userId);
+			}
+
+			userPredefinedMwEntities.addAll(predefinedMwEntities);
+
+			predefinedMW = prepareHoldingMWList(userPredefinedMwEntities);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		}
+		return predefinedMW;
+	}
+
+	/***
+	 * 
+	 * @param predefinedMw
+	 * @return
+	 */
+	private List<JSONObject> prepareHoldingMWList(List<HoldingsDataMwEntity> predefinedMw) {
+		List<JSONObject> predefinedMW = new ArrayList<>();
+		List<JSONObject> predefinedMWScrips = new ArrayList<>();
+		JSONObject jObj1 = new JSONObject();
+		jObj1.put("mwId", AppConstants.HOLDING_MW_ID);
+		jObj1.put("mwName", AppConstants.HOLDING_MW_NAME);
+//		jObj1.put("position", 2);
+		jObj1.put("isRename", false);
+		jObj1.put("isDefault", false);
+		jObj1.put("isEdit", false);
+
+		for (HoldingsDataMwEntity scrips : predefinedMw) {
+			if (HazelcastConfig.getInstance().getIsinByToken().get(scrips.getIsin()) != null) {
+				String exchToken = HazelcastConfig.getInstance().getIsinByToken().get(scrips.getIsin());
+				String[] result = exchToken.split("_");
+				String exchange = result[0];
+				String token = result[1];
+				System.out.println(exchToken);
+				if (HazelCacheController.getInstance().getContractMaster().get(exchToken) != null) {
+					ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
+							.get(exchToken);
+
+					JSONObject obj = new JSONObject();
+					if (properties.isExchfull()) {
+						String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
+						obj.put("exchange", exchangeIifl);
+						String segmentIifl = commonUtils.getExchangeName(masterData.getSegment());
+						obj.put("segment", segmentIifl);
+					} else {
+						obj.put("exchange", masterData.getExch());
+						obj.put("segment", masterData.getSegment());
+					}
+//					obj.put("exchange", exchange);
+//					obj.put("segment", masterData.getSegment());
+					obj.put("token", masterData.getToken());
+					obj.put("tradingSymbol", masterData.getTradingSymbol());
+					obj.put("formattedInsName", masterData.getFormattedInsName());
+					obj.put("sortOrder", "");
+					obj.put("pdc", masterData.getPdc());
+					obj.put("symbol", masterData.getSymbol());
+					if (masterData.getExpiry() != null) {
+						Date expiry = masterData.getExpiry();
+						String expDate = new SimpleDateFormat("YYYY-MM-dd").format(expiry);
+						obj.put("expiry", expDate);
+					}
+					obj.put("weekTag", masterData.getWeekTag());
+					predefinedMWScrips.add(obj);
+				}
+			}
+		}
+		jObj1.put("scrips", predefinedMWScrips);
+		predefinedMW.add(jObj1);
+		return predefinedMW;
+	}
+
+	/***
+	 * 
+	 * @param predefined
+	 * @param userId
+	 * @return
+	 */
+
+	private List<JSONObject> preparPostionMw(String userId) {
+		List<JSONObject> predefinedMW = new ArrayList<>();
+		try {
+			List<PositionDataMwEntity> predefinedPostionsMwEntities = new ArrayList<>();
+			List<PositionDataMwEntity> userPredefinedPostionMwEntities = new ArrayList<>();
+
+			/** Get predefined mw list from cache or DB **/
+			if (MwCacheController.getMasterPostionMwList().get(AppConstants.POSITION_MW) != null) {
+				predefinedPostionsMwEntities = MwCacheController.getMasterPostionMwList().get(AppConstants.POSITION_MW);
+			} else {
+				predefinedPostionsMwEntities = positionMwRepo.findByUserId(userId);
+			}
+
+			userPredefinedPostionMwEntities.addAll(predefinedPostionsMwEntities);
+
+			predefinedMW = preparePostionMWList(userPredefinedPostionMwEntities);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		}
+		return predefinedMW;
+	}
+
+	/***
+	 * 
+	 * @param predefinedMw
+	 * @return
+	 */
+	private List<JSONObject> preparePostionMWList(List<PositionDataMwEntity> predefinedMw) {
+		List<JSONObject> predefinedMW = new ArrayList<>();
+		List<JSONObject> predefinedMWScrips = new ArrayList<>();
+		JSONObject jObj1 = new JSONObject();
+		jObj1.put("mwId", AppConstants.POSITION_MW_ID);
+		jObj1.put("mwName", AppConstants.POSITION_MW_NAME);
+//		jObj1.put("position", 2);
+		jObj1.put("isRename", false);
+		jObj1.put("isDefault", false);
+		jObj1.put("isEdit", false);
+
+		for (PositionDataMwEntity scrips : predefinedMw) {
+
+			String codifiExchange = "";
+			if (properties.isExchfull()) {
+				String exchangeSegment = commonUtils
+						.getExchangeSegmentNameIIFL(scrips.getExchange().trim().toUpperCase());
+				codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+			} else {
+				codifiExchange = scrips.getExchange().trim().toUpperCase();
+			}
+
+			System.out.println("Postion >>>>>>>>" + codifiExchange + "_" + scrips.getToken());
+
+			if (HazelCacheController.getInstance().getContractMaster()
+					.get(codifiExchange + "_" + scrips.getToken()) != null) {
+				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
+						.get(codifiExchange + "_" + scrips.getToken());
+
+				JSONObject obj = new JSONObject();
+				if (properties.isExchfull()) {
+					String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
+					obj.put("exchange", exchangeIifl);
+					String segmentIifl = commonUtils.getExchangeName(masterData.getSegment());
+					obj.put("segment", segmentIifl);
+				} else {
+					obj.put("exchange", masterData.getExch());
+					obj.put("segment", masterData.getSegment());
+				}
+//				obj.put("exchange", masterData.getExch());
+//				obj.put("segment", masterData.getSegment());
+				obj.put("token", masterData.getToken());
+				obj.put("tradingSymbol", masterData.getTradingSymbol());
+				obj.put("formattedInsName", masterData.getFormattedInsName());
+				obj.put("sortOrder", "");
+				obj.put("pdc", masterData.getPdc());
+				obj.put("symbol", masterData.getSymbol());
+				if (masterData.getExpiry() != null) {
+					Date expiry = masterData.getExpiry();
+					String expDate = new SimpleDateFormat("YYYY-MM-dd").format(expiry);
+					obj.put("expiry", expDate);
+				}
+				obj.put("weekTag", masterData.getWeekTag());
+				predefinedMWScrips.add(obj);
+			}
+		}
+		jObj1.put("scrips", predefinedMWScrips);
+		predefinedMW.add(jObj1);
+		return predefinedMW;
+	}
 }

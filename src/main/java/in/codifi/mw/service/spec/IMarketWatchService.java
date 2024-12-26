@@ -4,6 +4,7 @@ import org.jboss.resteasy.reactive.RestResponse;
 import org.json.simple.JSONObject;
 
 import in.codifi.mw.model.ClinetInfoModel;
+import in.codifi.mw.model.GetContractInfoReqModel;
 import in.codifi.mw.model.MwCommodityContarctModel;
 import in.codifi.mw.model.MwRequestModel;
 import in.codifi.mw.model.ResponseModel;
@@ -70,5 +71,19 @@ public interface IMarketWatchService {
 	 * @return
 	 */
 	RestResponse<ResponseModel> getSecurityInfo(SecurityInfoReqModel model, ClinetInfoModel info);
+
+	/**
+	 * @param reqModel
+	 * @param info
+	 * @return
+	 */
+	RestResponse<ResponseModel> getContractInfo(GetContractInfoReqModel reqModel, ClinetInfoModel info);
+
+	/**
+	 * @param userId
+	 * @param predefined
+	 * @return
+	 */
+	RestResponse<ResponseModel> getAllMwScripsMob(String userId, boolean predefined);
 
 }
