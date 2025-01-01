@@ -1,6 +1,5 @@
 package in.codifi.mw.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
@@ -17,5 +16,7 @@ public class SpotData {
 	private String token;
 	@JsonProperty("tradingSymbol")
 	private String tradingSymbol;
+	@JsonProperty("nsebseToken")
+	private String nsebseToken;
 
 }
