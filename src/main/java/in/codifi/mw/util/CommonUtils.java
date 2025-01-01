@@ -38,7 +38,8 @@ public class CommonUtils {
 
 	public boolean isValidMWRename(String input) {
 		// Use a regex to check if the input matches any of the valid values
-		return input.toUpperCase().matches("NIFTY 50|NIFTY50|RECENTLYVIEWED|RECENTLY VIEWED|MY STOCK|MYSTOCK");
+		return input.toUpperCase().matches(
+				"NIFTY 50|NIFTY50|RECENTLYVIEWED|RECENTLY VIEWED|MY STOCK|MYSTOCK|Positions|Holdings|Recently Searched|My Stocks");
 	}
 
 	public boolean isValidExchSegment(String input) {
@@ -75,7 +76,7 @@ public class CommonUtils {
 	 * @return
 	 */
 	public boolean isBetweenOneAndFive(int mwId) {
-		return mwId >= 302 && mwId <= 306;
+		return mwId >= 301 && mwId <= 306;
 	}
 
 	public String getExchangeName(String exchSeg) {

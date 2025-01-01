@@ -65,4 +65,9 @@ public class ErrorCodeConstants {
 	public static final String ECMW119 = "ECMW119";
 	public static final String ECMW120 = "ECMW120";
 	public static final String ECMW121 = "ECMW121";
+	public static final String ECMW122 = "ECMW122";
+	public static final String ECMW123 = "ECMW123";
+	public static final String ECMW124 = "ECMW124";
+
+
 }

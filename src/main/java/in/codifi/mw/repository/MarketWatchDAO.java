@@ -12,6 +12,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
+import org.json.simple.JSONObject;
+
 import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.cache.HazelCacheController;
 import in.codifi.mw.config.ApplicationProperties;
@@ -20,6 +22,7 @@ import in.codifi.mw.entity.MarketWatchScripDetailsDTO;
 import in.codifi.mw.model.CacheMwDetailsModel;
 import in.codifi.mw.model.IndexModel;
 import in.codifi.mw.model.MwRequestModel;
+import in.codifi.mw.model.MwScripModel;
 import in.codifi.mw.model.badgeModel;
 import in.codifi.mw.util.CommonUtils;
 import in.codifi.mw.util.StringUtil;
@@ -44,7 +47,7 @@ public class MarketWatchDAO {
 
 	@Inject
 	ApplicationProperties properties;
-	
+
 	/**
 	 * Method to find mw name by user id
 	 * 
@@ -674,6 +677,13 @@ public class MarketWatchDAO {
 		return response;
 	}
 
+	/***
+	 * Method to get IndicesList
+	 * 
+	 * @author Vicky
+	 * 
+	 * @return
+	 */
 	public List<IndexModel> getIndicesList() {
 		List<IndexModel> response = new ArrayList<>();
 
@@ -694,11 +704,11 @@ public class MarketWatchDAO {
 						model.setExchange(exchangeIifl);
 						String segmentIifl = commonUtils.getExchangeName(rSet.getString("exchange_segment"));
 						model.setSegment(segmentIifl);
-					}else {
+					} else {
 						model.setExchange(rSet.getString("exch"));
 						model.setSegment(rSet.getString("exchange_segment"));
 					}
-					
+
 					model.setIndexName(rSet.getString("symbol"));
 					model.setIndexValue("");
 					model.setIndiceID(rSet.getString("token"));
@@ -724,6 +734,9 @@ public class MarketWatchDAO {
 		return response;
 	}
 
+	/***
+	 * Get Contract Data
+	 */
 	public void loadContract() {
 
 		PreparedStatement pStmt = null;
@@ -793,5 +806,187 @@ public class MarketWatchDAO {
 			}
 		}
 	}
+
+	/**
+	 * @author Vicky
+	 * 
+	 *         Get Recently Viewed Script Count
+	 * 
+	 * @param mwId
+	 * @param userId
+	 * @return
+	 */
+	public int getRecentlyViewedScripsCount(int mwId, String userId) {
+		int response = 0;
+
+		PreparedStatement pStmt = null;
+		Connection conn = null;
+		ResultSet rSet = null;
+		try {
+			conn = dataSource.getConnection();
+			String query = "SELECT count(*)as totalcount from tbl_market_watch_scrips  WHERE user_id = ? and mw_id = ?";
+			pStmt = conn.prepareStatement(query);
+			int paramPos = 1;
+			pStmt.setString(paramPos++, userId);
+			pStmt.setInt(paramPos++, mwId);
+			rSet = pStmt.executeQuery();
+			if (rSet != null) {
+				while (rSet.next()) {
+					response = rSet.getInt("totalcount");
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		} finally {
+			try {
+				if (rSet != null)
+					rSet.close();
+				if (pStmt != null)
+					pStmt.close();
+				if (conn != null)
+					conn.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return response;
+	}
+
+	/**
+	 * @param mwId
+	 * @param userId
+	 * @return
+	 */
+	public boolean deleteFirstRecords(int mwId, String userId) {
+		boolean response = false;
+		PreparedStatement pStmt = null;
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
+			pStmt = conn.prepareStatement(
+					"DELETE FROM market_watch.tbl_market_watch_scrips  where user_id = ? and mw_id = ? ORDER BY id ASC LIMIT 1");
+			int paramPos = 1;
+			pStmt.setString(paramPos++, userId);
+			pStmt.setInt(paramPos++, mwId);
+			pStmt.execute();
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		} finally {
+			try {
+
+				if (pStmt != null)
+					pStmt.close();
+				if (conn != null)
+					conn.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return response;
+	}
+
+	/**
+	 * @param mwId
+	 * @param userId
+	 * @return
+	 */
+	public List<MwScripModel> getFirstRecords(int mwId, String userId) {
+		List<MwScripModel> response = new ArrayList<>();
+		PreparedStatement pStmt = null;
+		Connection conn = null;
+		ResultSet rSet = null;
+		try {
+			conn = dataSource.getConnection();
+			String query = "SELECT exch, token FROM market_watch.tbl_market_watch_scrips  where user_id = ? and mw_id = ? ORDER BY id ASC LIMIT 1 ";
+			pStmt = conn.prepareStatement(query);
+			int paramPos = 1;
+			pStmt.setString(paramPos++, userId);
+			pStmt.setInt(paramPos++, mwId);
+			rSet = pStmt.executeQuery();
+			if (rSet != null) {
+				while (rSet.next()) {
+					MwScripModel model = new MwScripModel();
+					if (properties.isExchfull()) {
+						String exchangeIifl = commonUtils.getExchangeNameIIFL(rSet.getString("exch"));
+						model.setExchange(exchangeIifl);
+						model.setToken(rSet.getString("token"));
+					} else {
+						model.setExchange(rSet.getString("exch"));
+						model.setToken(rSet.getString("token"));
+					}
+
+					response.add(model);
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.error(e.getMessage());
+		} finally {
+			try {
+				if (rSet != null)
+					rSet.close();
+				if (pStmt != null)
+					pStmt.close();
+				if (conn != null)
+					conn.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return response;
+	}
+
+	/**
+	 * @param mwId
+	 * @param userId
+	 * @return
+	 */
+//	@SuppressWarnings("unchecked")
+//	public JSONObject getFirstRecords(int mwId, String userId) {
+//		JSONObject response = null;
+//		Connection conn = null;
+//		PreparedStatement pStmt = null;
+//		ResultSet rSet = null;
+//		try {
+//			conn = dataSource.getConnection();
+//			pStmt = conn.prepareStatement(
+//					" SELECT exch, token FROM market_watch.tbl_market_watch_scrips  where user_id = ? and mw_id = ? ORDER BY id ASC LIMIT 1 ");
+//			int paramPos = 1;
+//			pStmt.setString(paramPos++, userId);
+//			pStmt.setInt(paramPos++, mwId);
+//			rSet = pStmt.executeQuery();
+//			if (rSet != null) {
+//				response = new JSONObject();
+//				while (rSet.next()) {
+//					if (properties.isExchfull()) {
+//						String exchangeIifl = commonUtils.getExchangeNameIIFL(rSet.getString("exch"));
+//						response.put("exchange", exchangeIifl);
+//						response.put("token", rSet.getString("token"));
+//					} else {
+//						response.put("exchange", rSet.getString("exch"));
+//						response.put("token", rSet.getString("token"));
+//					}
+//
+//				}
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		} finally {
+//			try {
+//				if (pStmt != null)
+//					pStmt.close();
+//				if (conn != null)
+//					conn.close();
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		return response;
+//	}
 
 }

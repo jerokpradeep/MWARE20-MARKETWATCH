@@ -41,6 +41,8 @@ public class SecurityInfoRespModel {
 	private boolean scripIndex;
 	@JsonProperty("isFnOAvailable")
 	private boolean isFnOAvailable;
+	@JsonProperty("companyName")
+	private String companyName;
 	@JsonProperty("spotData")
 	private SpotData spotData;
 	@JsonProperty("prompt")
