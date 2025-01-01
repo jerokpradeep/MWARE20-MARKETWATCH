@@ -44,6 +44,11 @@
 			<artifactId>quarkus-resteasy-reactive</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>4.0.1</version> <!-- Use the latest version -->
+		</dependency>
+		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-spring-data-jpa</artifactId>
 		</dependency>

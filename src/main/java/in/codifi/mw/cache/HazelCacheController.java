@@ -47,23 +47,23 @@ public class HazelCacheController {
 		return hz;
 	}
 
-	private Map<String, ContractMasterModel> contractMaster = getHz().getMap("contractMaster");
-	private Map<String, List<PreferenceModel>> perference = getHz().getMap("perference");
-
-	public Map<String, ContractMasterModel> getContractMaster() {
-		return contractMaster;
-	}
-
-	public void setContractMaster(Map<String, ContractMasterModel> contractMaster) {
-		this.contractMaster = contractMaster;
-	}
-
-	public Map<String, List<PreferenceModel>> getPerference() {
-		return perference;
-	}
-
-	public void setPerference(Map<String, List<PreferenceModel>> perference) {
-		this.perference = perference;
-	}
+//	private Map<String, ContractMasterModel> contractMaster = getHz().getMap("contractMaster");
+//	private Map<String, List<PreferenceModel>> perference = getHz().getMap("perference");
+//
+//	public Map<String, ContractMasterModel> getContractMaster() {
+//		return contractMaster;
+//	}
+//
+//	public void setContractMaster(Map<String, ContractMasterModel> contractMaster) {
+//		this.contractMaster = contractMaster;
+//	}
+//
+//	public Map<String, List<PreferenceModel>> getPerference() {
+//		return perference;
+//	}
+//
+//	public void setPerference(Map<String, List<PreferenceModel>> perference) {
+//		this.perference = perference;
+//	}
 
 }
