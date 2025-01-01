@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.cache.HazelCacheController;
 import in.codifi.mw.cache.MwCacheController;
+import in.codifi.mw.cache.RedisConfig;
 import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.config.HazelcastConfig;
 import in.codifi.mw.entity.HoldingsDataMwEntity;
@@ -72,8 +73,6 @@ import io.quarkus.logging.Log;
 @SuppressWarnings("unchecked")
 @Service
 public class MarketWatchService implements IMarketWatchService {
-	private static final int MAX_SCRIPTS = 49;
-
 //	private static final ConcurrentHashMap<String, List<IndexModel>> getIndexData = new ConcurrentHashMap<>();
 	@Autowired
 	PrepareResponse prepareResponse;
@@ -109,18 +108,14 @@ public class MarketWatchService implements IMarketWatchService {
 						List<MarketWatchNameDTO> newMwList = new ArrayList<MarketWatchNameDTO>();
 						// TODO change hot code value
 						int mwListSize = Integer.parseInt(properties.getMwSize());
-						int mwId = 300;
+						int mwId = 301;
 						for (int i = 0; i < mwListSize; i++) {
 							mwId = mwId + 1;
 							System.out.println("mwId>>>>>" + mwId);
 							MarketWatchNameDTO newDto = new MarketWatchNameDTO();
 							newDto.setUserId(pUserId);
 							newDto.setMwId(mwId);
-							if (mwId == 301) {
-								newDto.setMwName(AppConstants.RECENTLY_SEARCHED_MW_NAME);
-							} else {
-								newDto.setMwName(AppConstants.MARKET_WATCH_LIST_NAME + (i + 1));
-							}
+							newDto.setMwName(AppConstants.MARKET_WATCH_LIST_NAME + (i + 1));
 							newDto.setPosition(Long.valueOf(i));
 							newMwList.add(newDto);
 						}
@@ -239,20 +234,11 @@ public class MarketWatchService implements IMarketWatchService {
 				JSONObject result = new JSONObject();
 				List<CacheMwDetailsModel> tempJsonObject = new ArrayList<CacheMwDetailsModel>();
 				tempJsonObject = (List<CacheMwDetailsModel>) mwResponse.get(tempStr);
-
-				if (mwId.equalsIgnoreCase("301")) {
-					result.put("mwId", mwId);
-					result.put("mwName", AppConstants.RECENTLY_SEARCHED_MW_NAME);
-					result.put("isEdit", false);
-					result.put("isDefault", false);
-					result.put("isRename", false);
-				} else {
-					result.put("mwId", mwId);
-					result.put("mwName", mwName);
-					result.put("isEdit", true);
-					result.put("isDefault", false);
-					result.put("isRename", true);
-				}
+				result.put("mwId", mwId);
+				result.put("mwName", mwName);
+				result.put("isEdit", true);
+				result.put("isDefault", false);
+				result.put("isRename", false);
 
 				if (tempJsonObject != null && tempJsonObject.size() > 0) {
 					result.put("scrips", tempJsonObject);
@@ -303,56 +289,50 @@ public class MarketWatchService implements IMarketWatchService {
 	public RestResponse<ResponseModel> renameMarketWatch(MwRequestModel pDto, String userId) {
 		try {
 			if (pDto != null) {
-				if (pDto.getMwId() != 301) {
-					if (pDto != null && pDto.getMwId() == 0) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW114,
-								ErrorMessageConstants.INVALID_MWID);
-					}
-					if (StringUtil.isNullOrEmpty(pDto.getMwName().trim())) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW115,
-								ErrorMessageConstants.INVALID_MWNAME);
-					}
 
-					if (pDto.getMwName() == null || pDto.getMwName().trim().isEmpty()) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW115,
-								ErrorMessageConstants.INVALID_MWNAME);
-					}
-
-					if (!commonUtils.isBetweenOneAndFive(pDto.getMwId())) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
-								AppConstants.INVALID_MW_ID);
-					}
-
-					if (!commonUtils.isOnlyInteger(String.valueOf(pDto.getMwId()))) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
-								AppConstants.INVALID_MW_ID);
-					}
-
-					if (pDto.getMwName().length() > 40) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW102,
-								AppConstants.MW_NAME_40);
-					}
-
-					if (!commonUtils.isAlphanumeric(pDto.getMwName().trim()) || pDto.getMwName() == null
-							|| pDto.getMwName().isEmpty() || commonUtils.isEmptyOrWhitespace(pDto.getMwName())) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW103,
-								AppConstants.MW_NAME);
-					}
-					if (commonUtils.isValidMWRename(pDto.getMwName())) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW114,
-								ErrorMessageConstants.RENAME_INVALID);
-					}
-					String oldMwName = marketWatchDAO.getMWName(pDto.getMwId(), userId);
-					boolean isDefault = marketWatchDAO.changeMwisDefaultStatus(pDto.getMwId(), userId,
-							pDto.isDefault());
-					renameMwInCache(pDto.getMwName().trim(), pDto.getMwId(), userId);
-					updateMwNamw(pDto.getMwName().trim(), pDto.getMwId(), userId);
-					return prepareResponse.prepareMWSuccessResponseString(
-							oldMwName + " Renamed to " + pDto.getMwName().trim() + " Successfully.");
-				} else {
-					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW123,
-							AppConstants.RECENTLY_SEARCH_RENAME);
+				if (pDto != null && pDto.getMwId() == 0) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW114,
+							ErrorMessageConstants.INVALID_MWID);
 				}
+				if (StringUtil.isNullOrEmpty(pDto.getMwName().trim())) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW115,
+							ErrorMessageConstants.INVALID_MWNAME);
+				}
+
+				if (pDto.getMwName() == null || pDto.getMwName().trim().isEmpty()) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW115,
+							ErrorMessageConstants.INVALID_MWNAME);
+				}
+
+				if (!commonUtils.isBetweenOneAndFive(pDto.getMwId())) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
+							AppConstants.INVALID_MW_ID);
+				}
+
+				if (!commonUtils.isOnlyInteger(String.valueOf(pDto.getMwId()))) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
+							AppConstants.INVALID_MW_ID);
+				}
+
+				if (pDto.getMwName().length() > 40) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW102, AppConstants.MW_NAME_40);
+				}
+
+				if (!commonUtils.isAlphanumeric(pDto.getMwName().trim()) || pDto.getMwName() == null
+						|| pDto.getMwName().isEmpty() || commonUtils.isEmptyOrWhitespace(pDto.getMwName())) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW103, AppConstants.MW_NAME);
+				}
+				if (commonUtils.isValidMWRename(pDto.getMwName())) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW114,
+							ErrorMessageConstants.RENAME_INVALID);
+				}
+				String oldMwName = marketWatchDAO.getMWName(pDto.getMwId(), userId);
+				boolean isDefault = marketWatchDAO.changeMwisDefaultStatus(pDto.getMwId(), userId, pDto.isDefault());
+				renameMwInCache(pDto.getMwName().trim(), pDto.getMwId(), userId);
+				updateMwNamw(pDto.getMwName().trim(), pDto.getMwId(), userId);
+				return prepareResponse.prepareMWSuccessResponseString(
+						oldMwName + " Renamed to " + pDto.getMwName().trim() + " Successfully.");
+
 			} else {
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW104,
 						AppConstants.INVALID_PARAMETER);
@@ -427,60 +407,56 @@ public class MarketWatchService implements IMarketWatchService {
 		try {
 			if (StringUtil.isNotNullOrEmpty(userId) && StringUtil.isListNotNullOrEmpty(pDto.getScripData())
 					&& pDto.getMwId() > 0) {
-				if (pDto.getMwId() != 301) {
 
-					if (!commonUtils.isBetweenOneAndFive(pDto.getMwId())) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
-								AppConstants.INVALID_MW_ID);
-					}
-
-					for (int i = 0; i < pDto.getScripData().size(); i++) {
-						String exchange = pDto.getScripData().get(i).getExchange();
-						if (StringUtil.isNullOrEmpty(exchange)) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
-									ErrorMessageConstants.INVALID_EXCH);
-						}
-						if (exchange == null || exchange.trim().isEmpty()) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
-									ErrorMessageConstants.INVALID_EXCH);
-						}
-						// Check if exchange is null or invalid
-						if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-									ErrorMessageConstants.INVALID_EXCHANGE);
-						}
-					}
-
-					for (int i = 0; i < pDto.getScripData().size(); i++) {
-						String token = pDto.getScripData().get(i).getToken();
-						if (StringUtil.isNullOrEmpty(token.trim())) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW118,
-									ErrorMessageConstants.TOKEN_EMTY_OR_NULL);
-						}
-						if (token == null || token.trim().isEmpty()) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
-									ErrorMessageConstants.INVALID_TOKEN);
-						}
-						if (!commonUtils.checkThisIsTheNumber(token.trim())) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
-									AppConstants.INVALID_TOKEN);
-						}
-					}
-
-					for (int i = 0; i < pDto.getScripData().size(); i++) {
-						int exch = pDto.getScripData().get(i).getSortingOrder();
-						if (!commonUtils.isBetweenOneAndFifty(exch)) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW108,
-									AppConstants.INVALID_SORTING_ORDER);
-						}
-					}
-
-					sortFromCache(pDto.getScripData(), userId, pDto.getMwId());
-					return sortScripInDataBase(pDto.getScripData(), userId, pDto.getMwId());
-				} else {
-					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW124,
-							AppConstants.RECENTLY_SEARCH_SORTING);
+				if (!commonUtils.isBetweenOneAndFive(pDto.getMwId())) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
+							AppConstants.INVALID_MW_ID);
 				}
+
+				for (int i = 0; i < pDto.getScripData().size(); i++) {
+					String exchange = pDto.getScripData().get(i).getExchange();
+					if (StringUtil.isNullOrEmpty(exchange)) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_EXCH);
+					}
+					if (exchange == null || exchange.trim().isEmpty()) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_EXCH);
+					}
+					// Check if exchange is null or invalid
+					if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+								ErrorMessageConstants.INVALID_EXCHANGE);
+					}
+				}
+
+				for (int i = 0; i < pDto.getScripData().size(); i++) {
+					String token = pDto.getScripData().get(i).getToken();
+					if (StringUtil.isNullOrEmpty(token.trim())) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW118,
+								ErrorMessageConstants.TOKEN_EMTY_OR_NULL);
+					}
+					if (token == null || token.trim().isEmpty()) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
+								ErrorMessageConstants.INVALID_TOKEN);
+					}
+					if (!commonUtils.checkThisIsTheNumber(token.trim())) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
+								AppConstants.INVALID_TOKEN);
+					}
+				}
+
+				for (int i = 0; i < pDto.getScripData().size(); i++) {
+					int exch = pDto.getScripData().get(i).getSortingOrder();
+					if (!commonUtils.isBetweenOneAndFifty(exch)) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW108,
+								AppConstants.INVALID_SORTING_ORDER);
+					}
+				}
+
+				sortFromCache(pDto.getScripData(), userId, pDto.getMwId());
+				return sortScripInDataBase(pDto.getScripData(), userId, pDto.getMwId());
+
 			} else {
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW104,
 						AppConstants.INVALID_PARAMETER);
@@ -491,6 +467,57 @@ public class MarketWatchService implements IMarketWatchService {
 		return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW105, AppConstants.FAILED_STATUS);
 
 	}
+
+	/*
+	 * method to sort from Cache
+	 * 
+	 */
+//	public void sortFromCache(List<MwScripModel> dataToSort, String pUserId, int userMwId) {
+//		if (dataToSort != null && dataToSort.size() > 0) {
+//			List<JSONObject> res = MwCacheController.getMwListUserId().get(pUserId);
+//			String marketWatchId = String.valueOf(userMwId);
+//			JSONObject result = null;
+//			int indexOfRes = 0;
+//			if (res != null && res.size() > 0) {
+//				for (int itr = 0; itr < res.size(); itr++) {
+//					result = new JSONObject();
+//					result = res.get(itr);
+//					String mwId = (String) result.get("mwId").toString();
+//					if (marketWatchId.equalsIgnoreCase(mwId)) {
+//						indexOfRes = itr;
+//						break;
+//					}
+//				}
+//				if (result != null && !result.isEmpty()) {
+//					List<CacheMwDetailsModel> scripDetails = (List<CacheMwDetailsModel>) result.get("scrips");
+//					if (scripDetails != null && scripDetails.size() > 0) {
+//						for (int i = 0; i < dataToSort.size(); i++) {
+//							MwScripModel tempDTO = dataToSort.get(i);
+//							String token = tempDTO.getToken();
+//							String exch = tempDTO.getExchange();
+//							int sortOrder = tempDTO.getSortingOrder();
+//							for (int j = 0; j < scripDetails.size(); j++) {
+//								CacheMwDetailsModel tempScripDTO = scripDetails.get(j);
+//								String scripToken = tempScripDTO.getToken();
+//								String scripExch = tempScripDTO.getExchange();
+//								if (scripToken.equalsIgnoreCase(token) && scripExch.equalsIgnoreCase(exch)) {
+//									tempScripDTO.setSortOrder(sortOrder);
+//									scripDetails.remove(j);
+//									scripDetails.add(tempScripDTO);
+//								}
+//							}
+//						}
+//						result.remove("scrips");
+//						result.put("scrips", scripDetails);
+//						res.remove(indexOfRes);
+//						res.add(indexOfRes, result);
+//						MwCacheController.getMwListUserId().remove(pUserId);
+//						MwCacheController.getMwListUserId().put(pUserId, res);
+//					}
+//				}
+//			}
+//		}
+//	}
 
 	/**
 	 * 
@@ -543,7 +570,47 @@ public class MarketWatchService implements IMarketWatchService {
 	 * @param mwId
 	 * @return
 	 */
+//	private RestResponse<ResponseModel> sortScripInDataBase(List<MwScripModel> scripDataToSort, String userId,
+//			int mwId) {
+//
+//		if (scripDataToSort != null && scripDataToSort.size() > 0) {
+//			List<MarketWatchScripDetailsDTO> mwList = marketWatchDAO.findAllByUserIdAndMwId(userId, mwId);
+//			if (scripDataToSort.size() != mwList.size())
+//				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW113,
+//						ErrorMessageConstants.MISMATCH_SORTORDER_SIZE);
+//
+//			System.out.println("sortScripInDataBase - for user " + userId + "Count- " + mwList.size());
+//			List<MarketWatchScripDetailsDTO> newScripDetails = new ArrayList<>();
+//			for (int i = 0; i < scripDataToSort.size(); i++) {
+//				MwScripModel model = new MwScripModel();
+//				model = scripDataToSort.get(i);
+//				for (int j = 0; j < mwList.size(); j++) {
+//					MarketWatchScripDetailsDTO dbData = new MarketWatchScripDetailsDTO();
+//					dbData = mwList.get(j);
+//					if (dbData.getToken().equalsIgnoreCase(model.getToken())
+//							&& dbData.getEx().equalsIgnoreCase(model.getExchange())) {
+//						dbData.setSortingOrder(model.getSortingOrder());
+//						newScripDetails.add(dbData);
+//					}
+//				}
+//			}
+//			if (newScripDetails != null && newScripDetails.size() > 0) {
+//				int res = marketWatchDAO.updateMWScrips(newScripDetails, userId, mwId);
+//				if (res > 0) {
+//					System.out.println("Updated");
+//				}
+//			}
+//		}
+//		return prepareResponse.prepareMWSuccessResponseString(AppConstants.SORTING_ORDER);
+//	}
 
+	/**
+	 * 
+	 * @param scripDataToSort
+	 * @param userId
+	 * @param mwId
+	 * @return
+	 */
 	private RestResponse<ResponseModel> sortScripInDataBase(List<MwScripModel> scripDataToSort, String userId,
 			int mwId) {
 
@@ -587,12 +654,6 @@ public class MarketWatchService implements IMarketWatchService {
 		return prepareResponse.prepareMWSuccessResponseString(AppConstants.SORTING_ORDER);
 	}
 
-	/***
-	 * Method to addScript in MW
-	 * 
-	 * @author Vicky
-	 * 
-	 */
 	@SuppressWarnings("static-access")
 	@Override
 	public RestResponse<ResponseModel> addscrip(MwRequestModel parmDto, String userId) {
@@ -662,7 +723,7 @@ public class MarketWatchService implements IMarketWatchService {
 					String exchange = data.getExchange().toUpperCase().trim();
 
 					if (properties.isExchfull()) {
-						if (!HazelCacheController.getInstance().getContractMaster().containsKey(
+						if (!RedisConfig.getInstance().hget(contractMaster).containsKey(
 								commonUtils.getExchangeNameContract(exchange.toUpperCase()) + "_" + token)) {
 							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
 									ErrorMessageConstants.INVALID_TOKEN);
@@ -684,22 +745,6 @@ public class MarketWatchService implements IMarketWatchService {
 					model.setSortingOrder(curentSortOrder);
 					mwScripModels.add(model);
 				}
-
-				if (parmDto.getMwId() == 301) {
-					int totalCount = marketWatchDAO.getRecentlyViewedScripsCount(parmDto.getMwId(), userId);
-					System.out.println("RecentlyViewedScripsCount >>>>" + totalCount);
-					if (totalCount > MAX_SCRIPTS) {
-						List<MwScripModel> result = marketWatchDAO.getFirstRecords(parmDto.getMwId(), userId);
-						// Remove the first (oldest) script
-						boolean isDeleteFirstRecord = marketWatchDAO.deleteFirstRecords(parmDto.getMwId(), userId);
-						if (isDeleteFirstRecord) {
-							System.out.println(result);
-							deleteFromCache(result, userId, parmDto.getMwId());
-							System.out.println("Remove the first (oldest) script");
-						}
-					}
-				}
-
 				List<CacheMwDetailsModel> scripDetails = getScripMW(mwScripModels);
 				if (scripDetails != null && scripDetails.size() > 0) {
 					List<CacheMwDetailsModel> newScripDetails = addNewScipsForMwIntoCache(scripDetails, userId,
@@ -829,11 +874,9 @@ public class MarketWatchService implements IMarketWatchService {
 					if (badge != null) {
 						fResult.setBadge(badge);
 					}
-//					if (!screeners.isEmpty() && screeners.stream().anyMatch(s -> !s.isEmpty())) {
-//						fResult.setScreeners(screeners);
-//					}
-					fResult.setScreeners(new JSONArray());
-
+					if (!screeners.isEmpty() && screeners.stream().anyMatch(s -> !s.isEmpty())) {
+						fResult.setScreeners(screeners);
+					}
 					response.add(fResult);
 				}
 			}
@@ -1006,60 +1049,55 @@ public class MarketWatchService implements IMarketWatchService {
 			List<MwScripModel> dataToDelete = pDto.getScripData();
 			if (StringUtil.isNotNullOrEmpty(useriD) && StringUtil.isListNotNullOrEmpty(dataToDelete) && mwId > 0) {
 
-				if (mwId != 301) {
-					if (!commonUtils.isBetweenOneAndFive(pDto.getMwId())) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
-								AppConstants.INVALID_MW_ID);
-					}
-
-					for (int i = 0; i < pDto.getScripData().size(); i++) {
-						String exchange = pDto.getScripData().get(i).getExchange();
-						if (StringUtil.isNullOrEmpty(exchange)) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
-									ErrorMessageConstants.INVALID_EXCH);
-						}
-						if (exchange == null || exchange.trim().isEmpty()) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
-									ErrorMessageConstants.INVALID_EXCH);
-						}
-						// Check if exchange is null or invalid
-						if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-									ErrorMessageConstants.INVALID_EXCHANGE);
-						}
-					}
-
-					for (int i = 0; i < pDto.getScripData().size(); i++) {
-						String token = pDto.getScripData().get(i).getToken();
-						if (StringUtil.isNullOrEmpty(token)) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW118,
-									ErrorMessageConstants.TOKEN_EMTY_OR_NULL);
-						}
-						if (token == null || token.trim().isEmpty()) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
-									ErrorMessageConstants.INVALID_TOKEN);
-						}
-						if (!commonUtils.checkThisIsTheNumber(token.trim())) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
-									AppConstants.INVALID_TOKEN);
-						}
-					}
-
-					String checkDeleteId = marketWatchDAO.selectByUserId(pDto, userId);
-
-					if (StringUtil.isNullOrEmpty(checkDeleteId)) {
-						System.out.println(checkDeleteId);
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW110,
-								AppConstants.ALREADY_DELETED_SCRIPT);
-					}
-
-					deleteFromCache(dataToDelete, useriD, mwId);
-					deleteFromDB(dataToDelete, useriD, mwId);
-					return prepareResponse.prepareMWSuccessResponseString(checkDeleteId + " Deleted Successfully");
-				} else {
-					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW122,
-							AppConstants.RECENTLY_SEARCH_DELETED);
+				if (!commonUtils.isBetweenOneAndFive(pDto.getMwId())) {
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
+							AppConstants.INVALID_MW_ID);
 				}
+
+				for (int i = 0; i < pDto.getScripData().size(); i++) {
+					String exchange = pDto.getScripData().get(i).getExchange();
+					if (StringUtil.isNullOrEmpty(exchange)) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_EXCH);
+					}
+					if (exchange == null || exchange.trim().isEmpty()) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_EXCH);
+					}
+					// Check if exchange is null or invalid
+					if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+								ErrorMessageConstants.INVALID_EXCHANGE);
+					}
+				}
+
+				for (int i = 0; i < pDto.getScripData().size(); i++) {
+					String token = pDto.getScripData().get(i).getToken();
+					if (StringUtil.isNullOrEmpty(token)) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW118,
+								ErrorMessageConstants.TOKEN_EMTY_OR_NULL);
+					}
+					if (token == null || token.trim().isEmpty()) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW117,
+								ErrorMessageConstants.INVALID_TOKEN);
+					}
+					if (!commonUtils.checkThisIsTheNumber(token.trim())) {
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107,
+								AppConstants.INVALID_TOKEN);
+					}
+				}
+
+				String checkDeleteId = marketWatchDAO.selectByUserId(pDto, userId);
+
+				if (StringUtil.isNullOrEmpty(checkDeleteId)) {
+					System.out.println(checkDeleteId);
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW110,
+							AppConstants.ALREADY_DELETED_SCRIPT);
+				}
+
+				deleteFromCache(dataToDelete, useriD, mwId);
+				deleteFromDB(dataToDelete, useriD, mwId);
+				return prepareResponse.prepareMWSuccessResponseString(checkDeleteId + " Deleted Successfully");
 			} else {
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW104,
 						AppConstants.INVALID_PARAMETER);
@@ -1080,6 +1118,49 @@ public class MarketWatchService implements IMarketWatchService {
 	 * @param pUserId
 	 * @param userMwId
 	 */
+//	public void deleteFromCache(List<MwScripModel> dataToDelete, String pUserId, int userMwId) {
+//		if (dataToDelete != null && dataToDelete.size() > 0) {
+//			List<JSONObject> res = MwCacheController.getMwListUserId().get(pUserId);
+//			String marketWatchId = String.valueOf(userMwId);
+//			JSONObject result = null;
+//			int indexOfRes = 0;
+//			if (res != null && res.size() > 0) {
+//				for (int itr = 0; itr < res.size(); itr++) {
+//					result = new JSONObject();
+//					result = res.get(itr);
+//					String mwId = (String) result.get("mwId").toString();
+//					if (marketWatchId.equalsIgnoreCase(mwId)) {
+//						indexOfRes = itr;
+//						break;
+//					}
+//				}
+//				if (result != null && !result.isEmpty()) {
+//					List<CacheMwDetailsModel> scripDetails = (List<CacheMwDetailsModel>) result.get("scrips");
+//					if (scripDetails != null && scripDetails.size() > 0) {
+//						for (int i = 0; i < dataToDelete.size(); i++) {
+//							MwScripModel tempDTO = dataToDelete.get(i);
+//							String token = tempDTO.getToken().toUpperCase().trim();
+//							String exch = tempDTO.getExchange().toUpperCase().trim();
+//							for (int j = 0; j < scripDetails.size(); j++) {
+//								CacheMwDetailsModel tempScripDTO = scripDetails.get(j);
+//								String scripToken = tempScripDTO.getToken();
+//								String scripExch = tempScripDTO.getExchange();
+//								if (scripToken.equalsIgnoreCase(token) && scripExch.equalsIgnoreCase(exch)) {
+//									scripDetails.remove(j);
+//								}
+//							}
+//						}
+//						result.remove("scrips");
+//						result.put("scrips", scripDetails);
+//						res.remove(indexOfRes);
+//						res.add(indexOfRes, result);
+//						MwCacheController.getMwListUserId().remove(pUserId);
+//						MwCacheController.getMwListUserId().put(pUserId, res);
+//					}
+//				}
+//			}
+//		}
+//	}
 
 	public void deleteFromCache(List<MwScripModel> dataToDelete, String pUserId, int userMwId) {
 		if (dataToDelete != null && !dataToDelete.isEmpty()) {
@@ -1131,6 +1212,29 @@ public class MarketWatchService implements IMarketWatchService {
 	 * @param pUserId
 	 * @param userMwId
 	 */
+//	public void deleteFromDB(List<MwScripModel> dataToDelete, String pUserId, int userMwId) {
+//		ExecutorService pool = Executors.newSingleThreadExecutor();
+//		pool.execute(new Runnable() {
+//			@Override
+//			public void run() {
+//				try {
+//					if (dataToDelete != null && dataToDelete.size() > 0) {
+//						for (int i = 0; i < dataToDelete.size(); i++) {
+//							MwScripModel tempDTO = dataToDelete.get(i);
+//							String token = tempDTO.getToken().toUpperCase().trim();
+//							String exch = tempDTO.getExchange().toUpperCase().trim();
+//							marketWatchDAO.deleteScripFomDataBase(pUserId, commonUtils.getExchangeNameContract(exch),
+//									token, userMwId);
+//						}
+//					}
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				} finally {
+//					pool.shutdown();
+//				}
+//			}
+//		});
+//	}
 
 	public void deleteFromDB(List<MwScripModel> dataToDelete, String pUserId, int userMwId) {
 		ExecutorService pool = Executors.newSingleThreadExecutor();
@@ -1236,18 +1340,14 @@ public class MarketWatchService implements IMarketWatchService {
 					System.out.println("create new mw for user - " + pUserId);
 					/* Create the new Market Watch */
 					int mwListSize = Integer.parseInt(properties.getMwSize());
-					int mwId = 300;
+					int mwId = 301;
 					for (int i = 0; i < mwListSize; i++) {
 						mwId = mwId + 1;
 						System.out.println("<<<<mwId>>>>>" + mwId);
 						MarketWatchNameDTO newDto = new MarketWatchNameDTO();
 						newDto.setUserId(pUserId);
 						newDto.setMwId(mwId);
-						if (mwId == 301) {
-							newDto.setMwName(AppConstants.RECENTLY_SEARCHED_MW_NAME);
-						} else {
-							newDto.setMwName(AppConstants.MARKET_WATCH_LIST_NAME + (i + 1));
-						}
+						newDto.setMwName(AppConstants.MARKET_WATCH_LIST_NAME + (i + 1));
 						newDto.setPosition(Long.valueOf(i));
 						newMwList.add(newDto);
 					}
@@ -1395,19 +1495,16 @@ public class MarketWatchService implements IMarketWatchService {
 				infoResult.setSurveillance("");
 				infoResult.setScripIndex(false);
 				infoResult.setFnOAvailable(masterData.getOptionType() == "1" ? true : false);
-				infoResult.setCompanyName(masterData.getCompanyName());
 
 				SpotData spotDataResult = new SpotData();
 				spotDataResult.setLtp(1);
 				spotDataResult.setToken(masterData.getToken());
 				spotDataResult.setTradingSymbol(masterData.getTradingSymbol());
-				spotDataResult.setNsebseToken(masterData.getAlterToken());
 
 				Prompt promptResult = new Prompt();
 				JSONArray promptObj = new JSONArray();
-//				promptResult.setCategory("");
-//				promptResult.setDescription("");
-//				promptObj.add(promptResult);
+				promptResult.setCategory("");
+				promptResult.setDescription("");
 				promptObj.add(promptResult);
 
 				ProductLeverage productLeverageResult = new ProductLeverage();
@@ -1422,16 +1519,13 @@ public class MarketWatchService implements IMarketWatchService {
 				badge.setHoldingqty(0);
 
 				infoResult.setSpotData(spotDataResult);
-//				infoResult.setPrompt(promptObj);
-				infoResult.setPrompt(new JSONArray());
+				infoResult.setPrompt(promptObj);
 				infoResult.setProductLeverage(productLeverageResult);
 				infoResult.setBadge(badge);
-//				infoResult.setScreeners(List.of("topGainer", "52wk High", "Volume shocker"));
-				infoResult.setScreeners(new JSONArray());
+				infoResult.setScreeners(List.of("topGainer", "52wk High", "Volume shocker"));
 
-//				return prepareResponse.prepareSuccessResponseObject(infoResult);
-				return prepareResponse.prepareSuccessResponseWithMessage(infoResult, AppConstants.SUCCESS_STATUS,
-						false);
+				return prepareResponse.prepareSuccessResponseObject(infoResult);
+
 			} else {
 				return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW111,
 						ErrorMessageConstants.NOT_FOUND, new JSONObject());
@@ -1654,11 +1748,11 @@ public class MarketWatchService implements IMarketWatchService {
 					List<JSONObject> holdingsResult = Stream.concat(combinedList.stream(), holdingsMW.stream())
 							.collect(Collectors.toList());
 
-//					List<JSONObject> postionMW = preparPostionMw(pUserId);
-//					List<JSONObject> postionsResult = Stream.concat(holdingsResult.stream(), postionMW.stream())
-//							.collect(Collectors.toList());
+					List<JSONObject> postionMW = preparPostionMw(pUserId);
+					List<JSONObject> postionsResult = Stream.concat(holdingsResult.stream(), postionMW.stream())
+							.collect(Collectors.toList());
 
-					return prepareResponse.prepareSuccessResponseObject(holdingsResult);
+					return prepareResponse.prepareSuccessResponseObject(postionsResult);
 
 				}
 				return prepareResponse.prepareSuccessResponseObject(result);
@@ -1686,11 +1780,11 @@ public class MarketWatchService implements IMarketWatchService {
 							List<JSONObject> holdingsResult = Stream.concat(combinedList.stream(), holdingsMW.stream())
 									.collect(Collectors.toList());
 
-//							List<JSONObject> postionMW = preparPostionMw(pUserId);
-//							List<JSONObject> postionsResult = Stream.concat(holdingsResult.stream(), postionMW.stream())
-//									.collect(Collectors.toList());
+							List<JSONObject> postionMW = preparPostionMw(pUserId);
+							List<JSONObject> postionsResult = Stream.concat(holdingsResult.stream(), postionMW.stream())
+									.collect(Collectors.toList());
 
-							return prepareResponse.prepareSuccessResponseObject(holdingsResult);
+							return prepareResponse.prepareSuccessResponseObject(postionsResult);
 
 						}
 						return prepareResponse.prepareSuccessResponseObject(tempResult);
@@ -1711,11 +1805,11 @@ public class MarketWatchService implements IMarketWatchService {
 						List<JSONObject> holdingsResult = Stream.concat(combinedList.stream(), holdingsMW.stream())
 								.collect(Collectors.toList());
 
-//						List<JSONObject> postionMW = preparPostionMw(pUserId);
-//						List<JSONObject> postionsResult = Stream.concat(holdingsResult.stream(), postionMW.stream())
-//								.collect(Collectors.toList());
+						List<JSONObject> postionMW = preparPostionMw(pUserId);
+						List<JSONObject> postionsResult = Stream.concat(holdingsResult.stream(), postionMW.stream())
+								.collect(Collectors.toList());
 
-						return prepareResponse.prepareSuccessResponseObject(holdingsResult);
+						return prepareResponse.prepareSuccessResponseObject(postionsResult);
 
 					}
 					if (resp != null && !resp.isEmpty()) {
@@ -1810,12 +1904,8 @@ public class MarketWatchService implements IMarketWatchService {
 						Date expiry = masterData.getExpiry();
 						String expDate = new SimpleDateFormat("YYYY-MM-dd").format(expiry);
 						obj.put("expiry", expDate);
-					}else {
-						obj.put("expiry", "");
 					}
-//					obj.put("weekTag", masterData.getWeekTag());
-					obj.put("weekTag", masterData.getWeekTag() == null ? "" : masterData.getWeekTag());
-					obj.put("screeners", new JSONArray());
+					obj.put("weekTag", masterData.getWeekTag());
 					predefinedMWScrips.add(obj);
 				}
 			}
@@ -1906,9 +1996,7 @@ public class MarketWatchService implements IMarketWatchService {
 						String expDate = new SimpleDateFormat("YYYY-MM-dd").format(expiry);
 						obj.put("expiry", expDate);
 					}
-					obj.put("weekTag", masterData.getWeekTag() == null ? "" : masterData.getWeekTag());
-//					obj.put("weekTag", masterData.getWeekTag());
-					obj.put("qty", scrips.getQty());
+					obj.put("weekTag", masterData.getWeekTag());
 					predefinedMWScrips.add(obj);
 				}
 			}
@@ -2006,8 +2094,7 @@ public class MarketWatchService implements IMarketWatchService {
 					String expDate = new SimpleDateFormat("YYYY-MM-dd").format(expiry);
 					obj.put("expiry", expDate);
 				}
-				obj.put("weekTag", masterData.getWeekTag() == null ? "" : masterData.getWeekTag());
-//				obj.put("weekTag", masterData.getWeekTag());
+				obj.put("weekTag", masterData.getWeekTag());
 				predefinedMWScrips.add(obj);
 			}
 		}
