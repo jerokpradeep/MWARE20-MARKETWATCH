@@ -14,8 +14,11 @@ import javax.sql.DataSource;
 
 import org.json.simple.JSONObject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.cache.HazelCacheController;
+import in.codifi.mw.cache.RedisConfig;
 import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.entity.MarketWatchNameDTO;
 import in.codifi.mw.entity.MarketWatchScripDetailsDTO;
@@ -783,9 +786,15 @@ public class MarketWatchDAO {
 					model.setWeekTag(rSet.getString("week_tag"));
 					System.out.println(rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token"));
 					// Save the model in HazelCache
-					HazelCacheController.getInstance().getContractMaster()
-							.put(rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token"), model);
-				}
+					  String cacheKey = rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token");
+		                ObjectMapper objectMapper = new ObjectMapper();
+		                String json = objectMapper.writeValueAsString(model);
+
+		                // Storing in Redis (use "contractMaster" as Redis hash name)
+		                RedisConfig.getInstance().getJedis().hset("contractMaster", cacheKey, json);
+		            }
+//					HazelCacheController.getInstance().getContractMaster()
+//							.put(rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token"), model);
 			}
 
 		} catch (Exception e) {

@@ -24,13 +24,16 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.cache.HazelCacheController;
 import in.codifi.mw.cache.MwCacheController;
+import in.codifi.mw.cache.RedisConfig;
 import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.config.HazelcastConfig;
 import in.codifi.mw.entity.HoldingsDataMwEntity;
-import in.codifi.mw.entity.HoldingsMwEntity;
 import in.codifi.mw.entity.MarketWatchNameDTO;
 import in.codifi.mw.entity.MarketWatchScripDetailsDTO;
 import in.codifi.mw.entity.PositionDataMwEntity;
@@ -662,17 +665,33 @@ public class MarketWatchService implements IMarketWatchService {
 					String exchange = data.getExchange().toUpperCase().trim();
 
 					if (properties.isExchfull()) {
-						if (!HazelCacheController.getInstance().getContractMaster().containsKey(
-								commonUtils.getExchangeNameContract(exchange.toUpperCase()) + "_" + token)) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-									ErrorMessageConstants.INVALID_TOKEN);
-						}
+//						if (!HazelCacheController.getInstance().getContractMaster().containsKey(
+//								commonUtils.getExchangeNameContract(exchange.toUpperCase()) + "_" + token)) {
+//							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+//									ErrorMessageConstants.INVALID_TOKEN);
+//						}
+				        String cacheKey = commonUtils.getExchangeNameContract(exchange.toUpperCase()) + "_" + token;
+				        if (! RedisConfig.getInstance().getJedis().hexists("contractMaster", cacheKey)) {
+				            return prepareResponse.prepareMWFailedResponse(
+				                ErrorCodeConstants.ECMW003,
+				                ErrorMessageConstants.INVALID_TOKEN
+				            );
+				        }
+						
 					} else {
-						if (!HazelCacheController.getInstance().getContractMaster()
-								.containsKey(exchange.toUpperCase() + "_" + token)) {
-							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-									ErrorMessageConstants.INVALID_TOKEN);
-						}
+//						if (!HazelCacheController.getInstance().getContractMaster()
+//								.containsKey(exchange.toUpperCase() + "_" + token)) {
+//							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+//									ErrorMessageConstants.INVALID_TOKEN);
+//						}
+						 String cacheKey = exchange.toUpperCase() + "_" + token;
+					        if (!RedisConfig.getInstance().getJedis().hexists("contractMaster", cacheKey)) {
+					            // If the key doesn't exist, return a failure response
+					            return prepareResponse.prepareMWFailedResponse(
+					                ErrorCodeConstants.ECMW003,
+					                ErrorMessageConstants.INVALID_TOKEN
+					            );
+					        }
 					}
 
 				}
@@ -790,10 +809,17 @@ public class MarketWatchService implements IMarketWatchService {
 				}
 
 				System.out.println(codifiExchange + "_" + token);
-				if (HazelCacheController.getInstance().getContractMaster().get(codifiExchange + "_" + token) != null) {
-					ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-							.get(codifiExchange + "_" + token);
-					CacheMwDetailsModel fResult = new CacheMwDetailsModel();
+//				if (HazelCacheController.getInstance().getContractMaster().get(codifiExchange + "_" + token) != null) {
+//					ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
+//							.get(codifiExchange + "_" + token);
+				 String cacheKey = codifiExchange + "_" + token;
+		            try {
+		                if (RedisConfig.getInstance().getJedis().hexists("contractMaster", cacheKey)) {
+		                    String json = RedisConfig.getInstance().getJedis().hget("contractMaster", cacheKey);
+		                    ObjectMapper objectMapper = new ObjectMapper();
+		                    ContractMasterModel masterData = objectMapper.readValue(json, ContractMasterModel.class);
+
+				CacheMwDetailsModel fResult = new CacheMwDetailsModel();
 					fResult.setSymbol(masterData.getSymbol());
 					fResult.setTradingSymbol(masterData.getTradingSymbol());
 					fResult.setFormattedInsName(masterData.getFormattedInsName());
@@ -834,9 +860,11 @@ public class MarketWatchService implements IMarketWatchService {
 //					}
 					fResult.setScreeners(new JSONArray());
 
-					response.add(fResult);
-				}
-			}
+		                }
+		            } catch (Exception e) {
+		                e.printStackTrace();
+		            }
+		        }
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -956,10 +984,16 @@ public class MarketWatchService implements IMarketWatchService {
 			} else {
 				codifiExchange = model.getExchange().trim().toUpperCase();
 			}
-
-			if (HazelCacheController.getInstance().getContractMaster().get(codifiExchange + "_" + token) != null) {
-				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-						.get(codifiExchange + "_" + token);
+			// Deserialize the JSON string into an OHLCModel object
+//			if (HazelCacheController.getInstance().getContractMaster().get(codifiExchange + "_" + token) != null) {
+//				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
+//						.get(codifiExchange + "_" + token);
+			   String cacheKey = codifiExchange + "_" + token;
+		        try {
+		            if (RedisConfig.getInstance().getJedis().hexists("contractMaster", cacheKey)) {
+		                String json = RedisConfig.getInstance().getJedis().hget("contractMaster", cacheKey);
+		                ObjectMapper objectMapper = new ObjectMapper();
+		                ContractMasterModel masterData = objectMapper.readValue(json, ContractMasterModel.class);
 
 				resultDto.setUserId(userId);
 				resultDto.setMwId(mwId);
@@ -985,11 +1019,17 @@ public class MarketWatchService implements IMarketWatchService {
 				resultDto.setSortingOrder(model.getSortOrder());
 				marketWatchScripDetailsDTOs.add(resultDto);
 			}
-
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        }
+		
 		}
 
 		return marketWatchScripDetailsDTOs;
+	
 	}
+
+
 
 	/**
 	 * Method to delete the scrips from the cache and market watch
@@ -1367,11 +1407,17 @@ public class MarketWatchService implements IMarketWatchService {
 			} else {
 				codifiExchange = model.getExchange().trim().toUpperCase();
 			}
-
-			if (HazelCacheController.getInstance().getContractMaster()
-					.get(codifiExchange + "_" + model.getToken().trim()) != null) {
-				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-						.get(codifiExchange + "_" + model.getToken().trim());
+			if(RedisConfig.getInstance().getJedis().hget(codifiExchange,model.getToken().trim()) != null) {
+				
+				String Json = RedisConfig.getInstance().getJedis().hget(codifiExchange,model.getToken().trim());
+				ObjectMapper objectMapper = new ObjectMapper();
+				// Deserialize the JSON string into an OHLCModel object
+				ContractMasterModel masterData = objectMapper.readValue(Json, ContractMasterModel.class);
+//				if (HazelCacheController.getInstance().getContractMaster().get(codifiExchange + "_" + token) !
+//			if (HazelCacheController.getInstance().getContractMaster()
+//					.get(codifiExchange + "_" + model.getToken().trim()) != null) {
+//				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
+//						.get(codifiExchange + "_" + model.getToken().trim());
 				SecurityInfoRespModel infoResult = new SecurityInfoRespModel();
 				String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
 				infoResult.setIsin(StringUtil.isNullOrEmpty(codifiExchange) ? "" : masterData.getIsin());
@@ -1464,8 +1510,15 @@ public class MarketWatchService implements IMarketWatchService {
 	private boolean saveRecentlyViewedScrips(String pExchange, String pToken, String pUserId, Date expiryDate) {
 		boolean isSaved = false;
 		try {
-			ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
-					.get(pExchange + "_" + pToken);
+//			ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
+//					.get(pExchange + "_" + pToken);
+			String cacheKey = pExchange + "_" + pToken;
+			String json = RedisConfig.getInstance().getJedis().hget("contractMaster", cacheKey);
+			ContractMasterModel contractMasterModel = null;
+			if (json != null) {
+			    ObjectMapper objectMapper = new ObjectMapper();
+			    contractMasterModel = objectMapper.readValue(json, ContractMasterModel.class);
+			}
 			if (ObjectUtils.isNotEmpty(contractMasterModel)) {
 				/*
 				 * Check the data's are present for the given user Id into the Database
@@ -1553,8 +1606,16 @@ public class MarketWatchService implements IMarketWatchService {
 					&& StringUtil.isNotNullOrEmpty(model.getExch())) {
 				String token = model.getToken();
 				String exch = model.getExch().toUpperCase();
-				ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
-						.get(exch + "_" + token);
+//				ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
+//						.get(exch + "_" + token);
+			    String cacheKey = exch + "_" + token;
+	            
+	            // Fetching data from Redis instead of Hazelcast
+	            String json = RedisConfig.getInstance().getJedis().hget("contractMaster", cacheKey);
+	            
+	            if (json != null) {
+	                ObjectMapper objectMapper = new ObjectMapper();
+	                ContractMasterModel contractMasterModel = objectMapper.readValue(json, ContractMasterModel.class);
 				if (ObjectUtils.isNotEmpty(contractMasterModel)) {
 					ContractInfoDetails details = prepareContractInfoResp(contractMasterModel);
 					detailsList.add(details);
@@ -1563,14 +1624,23 @@ public class MarketWatchService implements IMarketWatchService {
 					if (contractMasterModel != null && (exch.equalsIgnoreCase("NSE") || exch.equalsIgnoreCase("BSE"))
 							&& StringUtil.isNotNullOrEmpty(contractMasterModel.getAlterToken())) {
 						String altExch = exch.equalsIgnoreCase("BSE") ? "NSE" : "BSE";
-
-						ContractMasterModel alterContractMasterModel = HazelcastConfig.getInstance().getContractMaster()
-								.get(altExch + "_" + contractMasterModel.getAlterToken());
-						if (alterContractMasterModel != null) {
-							ContractInfoDetails altDetails = prepareContractInfoResp(alterContractMasterModel);
-							detailsList.add(altDetails);
-						}
-					}
+						
+						String altCacheKey = altExch + "_" + contractMasterModel.getAlterToken();
+                        String altJson = RedisConfig.getInstance().getJedis().hget("contractMaster", altCacheKey);
+                        
+                        if (altJson != null) {
+                            ContractMasterModel alterContractMasterModel = objectMapper.readValue(altJson, ContractMasterModel.class);
+                            ContractInfoDetails altDetails = prepareContractInfoResp(alterContractMasterModel);
+                            detailsList.add(altDetails);
+                        }
+                    }
+////						ContractMasterModel alterContractMasterModel = HazelcastConfig.getInstance().getContractMaster()
+////								.get(altExch + "_" + contractMasterModel.getAlterToken());
+//						if (alterContractMasterModel != null) {
+//							ContractInfoDetails altDetails = prepareContractInfoResp(alterContractMasterModel);
+//							detailsList.add(altDetails);
+//						}
+//					}
 					response.setFreezeQty(contractMasterModel.getFreezQty());
 					response.setIsin(contractMasterModel.getIsin());
 					response.setScrips(detailsList);
@@ -1582,7 +1652,10 @@ public class MarketWatchService implements IMarketWatchService {
 					return prepareResponse.prepareSuccessResponseObject(response);
 				} else {
 					return prepareResponse.prepareFailedResponse(AppConstants.TOKEN_NOT_EXISTS);
-				}
+				}  
+	            }else {
+	                return prepareResponse.prepareFailedResponse(AppConstants.TOKEN_NOT_EXISTS);
+	            }
 			} else {
 				return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 			}
@@ -1604,16 +1677,28 @@ public class MarketWatchService implements IMarketWatchService {
 
 		/** To add prompt message **/
 		if (model != null && (model.getExch().equalsIgnoreCase("NSE") || model.getExch().equalsIgnoreCase("BSE"))) {
-			if (HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch()) != null
-					&& HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch())
-							.size() > 0) {
-				List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMaster()
-						.get(model.getIsin() + "_" + model.getExch());
+			try {
+			 String promptKey ="model.getIsin() + _ + model.getExch()";
+			 String cachedPromptData = RedisConfig.getInstance().getJedis().get(promptKey);
+
+	            if (cachedPromptData != null) {
+	                // Deserialize the prompt data
+	                List<PromptModel> prompt = new ObjectMapper().readValue(
+	                    cachedPromptData, new TypeReference<List<PromptModel>>() {}
+	                );
+//			if (HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch()) != null
+//					&& HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch())
+//							.size() > 0) {
+//				List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMaster()
+//						.get(model.getIsin() + "_" + model.getExch());
 				if (prompt != null && prompt.size() > 0) {
 					details.setPrompt(prompt);
 				}
 			}
-		}
+		} catch (Exception e) {
+	            e.printStackTrace(); 
+	        }
+	    }
 		details.setExchange(model.getExch());
 		details.setLotSize(model.getLotSize());
 		details.setTickSize(model.getTickSize());
@@ -1783,12 +1868,24 @@ public class MarketWatchService implements IMarketWatchService {
 			jObj1.put("isEdit", false);
 
 			for (PredefinedMwScripsEntity scrips : preMW.getScrips()) {
-				if (HazelCacheController.getInstance().getContractMaster()
-						.get(scrips.getExchange() + "_" + scrips.getToken()) != null) {
-					ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-							.get(scrips.getExchange() + "_" + scrips.getToken());
+//				if (HazelCacheController.getInstance().getContractMaster()
+//						.get(scrips.getExchange() + "_" + scrips.getToken()) != null) {
+//					ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
+//							.get(scrips.getExchange() + "_" + scrips.getToken());
+				    ContractMasterModel masterData = null;
+		            String cacheKey = scrips.getExchange() + "_" + scrips.getToken();
+		            try {
+		                if (RedisConfig.getInstance().getJedis().hexists("contractMaster", cacheKey)) {
+		                    String json = RedisConfig.getInstance().getJedis().hget("contractMaster", cacheKey);
+		                    ObjectMapper objectMapper = new ObjectMapper();
+		                     masterData = objectMapper.readValue(json, ContractMasterModel.class);
+		                }
+		            } catch (Exception e) {
+		                e.printStackTrace();
+		            }
 
-					JSONObject obj = new JSONObject();
+		            if (masterData != null) {
+		                JSONObject obj = new JSONObject();
 					if (properties.isExchfull()) {
 						String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
 						obj.put("exchange", exchangeIifl);
@@ -1873,15 +1970,30 @@ public class MarketWatchService implements IMarketWatchService {
 		jObj1.put("isEdit", false);
 
 		for (HoldingsDataMwEntity scrips : predefinedMw) {
-			if (HazelcastConfig.getInstance().getIsinByToken().get(scrips.getIsin()) != null) {
-				String exchToken = HazelcastConfig.getInstance().getIsinByToken().get(scrips.getIsin());
-				String[] result = exchToken.split("_");
-				String exchange = result[0];
-				String token = result[1];
-				System.out.println(exchToken);
-				if (HazelCacheController.getInstance().getContractMaster().get(exchToken) != null) {
-					ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-							.get(exchToken);
+			 if (RedisConfig.getInstance().getJedis().hexists("isinByToken", scrips.getIsin())) {
+		            String exchToken = RedisConfig.getInstance().getJedis().hget("isinByToken", scrips.getIsin());
+		            String[] result = exchToken.split("_");
+		            String exchange = result[0];
+		            String token = result[1];
+		            System.out.println(exchToken);
+
+		            // Fetch contract master data from Redis
+		            if (RedisConfig.getInstance().getJedis().hexists("contractMaster", exchToken)) {
+		                String json = RedisConfig.getInstance().getJedis().hget("contractMaster", exchToken);
+
+		                try {
+		                    // Deserialize the JSON string into a ContractMasterModel object
+		                    ObjectMapper objectMapper = new ObjectMapper();
+		                    ContractMasterModel masterData = objectMapper.readValue(json, ContractMasterModel.class);
+//			if (HazelcastConfig.getInstance().getIsinByToken().get(scrips.getIsin()) != null) {
+//				String exchToken = HazelcastConfig.getInstance().getIsinByToken().get(scrips.getIsin());
+//				String[] result = exchToken.split("_");
+//				String exchange = result[0];
+//				String token = result[1];
+//				System.out.println(exchToken);
+//				if (HazelCacheController.getInstance().getContractMaster().get(exchToken) != null) {
+//					ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
+//							.get(exchToken);
 
 					JSONObject obj = new JSONObject();
 					if (properties.isExchfull()) {
@@ -1910,9 +2022,13 @@ public class MarketWatchService implements IMarketWatchService {
 //					obj.put("weekTag", masterData.getWeekTag());
 					obj.put("qty", scrips.getQty());
 					predefinedMWScrips.add(obj);
+		                } catch (Exception e) {
+		                    e.printStackTrace();
+		                }
 				}
 			}
 		}
+		
 		jObj1.put("scrips", predefinedMWScrips);
 		predefinedMW.add(jObj1);
 		return predefinedMW;
@@ -1977,13 +2093,21 @@ public class MarketWatchService implements IMarketWatchService {
 			}
 
 			System.out.println("Postion >>>>>>>>" + codifiExchange + "_" + scrips.getToken());
+			  if (RedisConfig.getInstance().getJedis().hexists("contractMaster", codifiExchange + "_" + scrips.getToken())) {
+		            String json = RedisConfig.getInstance().getJedis().hget("contractMaster", codifiExchange + "_" + scrips.getToken());
 
-			if (HazelCacheController.getInstance().getContractMaster()
-					.get(codifiExchange + "_" + scrips.getToken()) != null) {
-				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-						.get(codifiExchange + "_" + scrips.getToken());
+		            try {
+		                // Deserialize the JSON string into a ContractMasterModel object
+		                ObjectMapper objectMapper = new ObjectMapper();
+		                ContractMasterModel masterData = objectMapper.readValue(json, ContractMasterModel.class);
 
-				JSONObject obj = new JSONObject();
+		                JSONObject obj = new JSONObject();
+//			if (HazelCacheController.getInstance().getContractMaster()
+//					.get(codifiExchange + "_" + scrips.getToken()) != null) {
+//				ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
+//						.get(codifiExchange + "_" + scrips.getToken());
+//
+//				JSONObject obj = new JSONObject();
 				if (properties.isExchfull()) {
 					String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
 					obj.put("exchange", exchangeIifl);
@@ -2009,7 +2133,11 @@ public class MarketWatchService implements IMarketWatchService {
 				obj.put("weekTag", masterData.getWeekTag() == null ? "" : masterData.getWeekTag());
 //				obj.put("weekTag", masterData.getWeekTag());
 				predefinedMWScrips.add(obj);
+		            } catch (Exception e) {
+		                e.printStackTrace(); // Handle JSON deserialization exception
+		            }
 			}
+		            
 		}
 		jObj1.put("scrips", predefinedMWScrips);
 		predefinedMW.add(jObj1);

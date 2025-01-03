@@ -15,7 +15,10 @@ import javax.inject.Inject;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jboss.resteasy.reactive.RestResponse;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.mw.cache.RedisConfig;
 import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.config.HazelcastConfig;
 import in.codifi.mw.entity.secondary.RecentlyViewedEntity;
@@ -36,6 +39,8 @@ import in.codifi.mw.util.ErrorMessageConstants;
 import in.codifi.mw.util.PrepareResponse;
 import in.codifi.mw.util.StringUtil;
 import io.quarkus.logging.Log;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 
 /**
  * @author Vicky
@@ -98,38 +103,62 @@ public class ScripsService implements ScripsServiceSpecs {
 			}
 
 			/* To check where to fetch data */
-			if (HazelcastConfig.getInstance().getFetchDataFromCache().get(AppConstants.FETCH_DATA_FROM_CACHE) != null
-					&& HazelcastConfig.getInstance().getFetchDataFromCache().get(AppConstants.FETCH_DATA_FROM_CACHE)) {
+//			if (HazelcastConfig.getInstance().getFetchDataFromCache().get(AppConstants.FETCH_DATA_FROM_CACHE) != null
+//					&& HazelcastConfig.getInstance().getFetchDataFromCache().get(AppConstants.FETCH_DATA_FROM_CACHE)) {
+//
+//				if (reqModel.getSearchText().trim().length() < 2) {
+//					if (HazelcastConfig.getInstance().getDistinctSymbols()
+//							.get(reqModel.getSearchText().trim().length()) != null
+//							&& HazelcastConfig.getInstance().getDistinctSymbols()
+//									.get(reqModel.getSearchText().trim().length()).size() > 0
+//							&& HazelcastConfig.getInstance().getDistinctSymbols()
+//									.get(reqModel.getSearchText().trim().length())
+//									.contains(reqModel.getSearchText().trim().toUpperCase())) {
+//						responses = getSearchDetailsFromCache(reqModel);
+//					}
+//				} else {
+//					responses = getSearchDetailsFromCache(reqModel);
+//				}
+//			} else {
+//				if (reqModel.getSearchText().trim().length() < 2) {
+//					if (HazelcastConfig.getInstance().getDistinctSymbols()
+//							.get(reqModel.getSearchText().trim().length()) != null
+//							&& HazelcastConfig.getInstance().getDistinctSymbols()
+//									.get(reqModel.getSearchText().trim().length()).size() > 0
+//							&& HazelcastConfig.getInstance().getDistinctSymbols()
+//									.get(reqModel.getSearchText().trim().length())
+//									.contains(reqModel.getSearchText().trim().toUpperCase())) {
+//						responses = scripSearchRepo.getScrips(reqModel);
+//					}
+//				} else {
+//					responses = scripSearchRepo.getScrips(reqModel);
+//				}
+//			}
+			  String fetchDataFromCache = RedisConfig.getInstance().getJedis().hget("fetchDataFromCache", AppConstants.FETCH_DATA_FROM_CACHE);
+		        if (fetchDataFromCache != null && Boolean.parseBoolean(fetchDataFromCache)) {
 
-				if (reqModel.getSearchText().trim().length() < 2) {
-					if (HazelcastConfig.getInstance().getDistinctSymbols()
-							.get(reqModel.getSearchText().trim().length()) != null
-							&& HazelcastConfig.getInstance().getDistinctSymbols()
-									.get(reqModel.getSearchText().trim().length()).size() > 0
-							&& HazelcastConfig.getInstance().getDistinctSymbols()
-									.get(reqModel.getSearchText().trim().length())
-									.contains(reqModel.getSearchText().trim().toUpperCase())) {
-						responses = getSearchDetailsFromCache(reqModel);
-					}
-				} else {
-					responses = getSearchDetailsFromCache(reqModel);
-				}
-			} else {
-				if (reqModel.getSearchText().trim().length() < 2) {
-					if (HazelcastConfig.getInstance().getDistinctSymbols()
-							.get(reqModel.getSearchText().trim().length()) != null
-							&& HazelcastConfig.getInstance().getDistinctSymbols()
-									.get(reqModel.getSearchText().trim().length()).size() > 0
-							&& HazelcastConfig.getInstance().getDistinctSymbols()
-									.get(reqModel.getSearchText().trim().length())
-									.contains(reqModel.getSearchText().trim().toUpperCase())) {
-						responses = scripSearchRepo.getScrips(reqModel);
-					}
-				} else {
-					responses = scripSearchRepo.getScrips(reqModel);
-				}
-			}
-
+		            if (reqModel.getSearchText().trim().length() < 2) {
+		                String cacheKey = String.valueOf(reqModel.getSearchText().trim().length());
+		                List<String> distinctSymbols = RedisConfig.getInstance().getJedis().lrange("distinctSymbols_" + cacheKey, 0, -1);
+		                if (distinctSymbols != null && distinctSymbols.size() > 0
+		                        && distinctSymbols.contains(reqModel.getSearchText().trim().toUpperCase())) {
+		                    responses = getSearchDetailsFromCache(reqModel);
+		                }
+		            } else {
+		                responses = getSearchDetailsFromCache(reqModel);
+		            }
+		        } else {
+		            if (reqModel.getSearchText().trim().length() < 2) {
+		                String cacheKey = String.valueOf(reqModel.getSearchText().trim().length());
+		                List<String> distinctSymbols = RedisConfig.getInstance().getJedis().lrange("distinctSymbols_" + cacheKey, 0, -1);
+		                if (distinctSymbols != null && distinctSymbols.size() > 0
+		                        && distinctSymbols.contains(reqModel.getSearchText().trim().toUpperCase())) {
+		                    responses = scripSearchRepo.getScrips(reqModel);
+		                }
+		            } else {
+		                responses = scripSearchRepo.getScrips(reqModel);
+		            }
+		        }
 			String totalCount = scripSearchRepo.getScripsCount(reqModel);
 			int pageCount = 0;
 			if (StringUtil.isNotNullOrEmptyAfterTrim(totalCount)) {
@@ -215,31 +244,60 @@ public class ScripsService implements ScripsServiceSpecs {
 		/*
 		 * Check Exchange array contains ALL
 		 */
+//		if (Arrays.stream(exchange).anyMatch("all"::equalsIgnoreCase)) {
+//			if (getLoadedSearchData.get(reqModel.getSearchText().trim().toUpperCase() + "_" + reqModel.getPageSize()
+//					+ "_" + reqModel.getCurrentPage()) != null) {
+//				responses = getLoadedSearchData.get(reqModel.getSearchText().trim().toUpperCase() + "_"
+//						+ reqModel.getPageSize() + "_" + reqModel.getCurrentPage());
+//			} else {
+//				responses = scripSearchRepo.getScrips(reqModel);
+//				if (responses != null && responses.size() > 0) {
+//					if (HazelcastConfig.getInstance().getIndexDetails()
+//							.get(reqModel.getSearchText().trim().toUpperCase()) != null) {
+//						ScripSearchResp result = HazelcastConfig.getInstance().getIndexDetails()
+//								.get(reqModel.getSearchText().trim().toUpperCase());
+//						responses.set(0, result);
+//						if (responses.size() > 24) {
+//							responses.remove(25);
+//						}
+//					}
+//					String pageSize = StringUtil.isNullOrEmpty(reqModel.getPageSize()) ? "50" : reqModel.getPageSize();
+//					String currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage()) ? "1"
+//							: reqModel.getCurrentPage();
+//					getLoadedSearchData.put(
+//							reqModel.getSearchText().trim().toUpperCase() + "_" + pageSize + "_" + currentPage,
+//							responses);
+//				}
+//			}
 		if (Arrays.stream(exchange).anyMatch("all"::equalsIgnoreCase)) {
-			if (getLoadedSearchData.get(reqModel.getSearchText().trim().toUpperCase() + "_" + reqModel.getPageSize()
-					+ "_" + reqModel.getCurrentPage()) != null) {
-				responses = getLoadedSearchData.get(reqModel.getSearchText().trim().toUpperCase() + "_"
-						+ reqModel.getPageSize() + "_" + reqModel.getCurrentPage());
-			} else {
-				responses = scripSearchRepo.getScrips(reqModel);
-				if (responses != null && responses.size() > 0) {
-					if (HazelcastConfig.getInstance().getIndexDetails()
-							.get(reqModel.getSearchText().trim().toUpperCase()) != null) {
-						ScripSearchResp result = HazelcastConfig.getInstance().getIndexDetails()
-								.get(reqModel.getSearchText().trim().toUpperCase());
-						responses.set(0, result);
-						if (responses.size() > 24) {
-							responses.remove(25);
-						}
-					}
-					String pageSize = StringUtil.isNullOrEmpty(reqModel.getPageSize()) ? "50" : reqModel.getPageSize();
-					String currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage()) ? "1"
-							: reqModel.getCurrentPage();
-					getLoadedSearchData.put(
-							reqModel.getSearchText().trim().toUpperCase() + "_" + pageSize + "_" + currentPage,
-							responses);
-				}
-			}
+		    String cacheKey = reqModel.getSearchText().trim().toUpperCase() + "_" + reqModel.getPageSize() + "_" + reqModel.getCurrentPage();
+
+		    try {
+		        // Fetch from Redis cache if available
+		        String cachedData = RedisConfig.getInstance().getJedis().get(cacheKey);
+		        if (cachedData != null) {
+		            // Parse the cached data (assuming it's JSON)
+		            responses = new ObjectMapper().readValue(cachedData, new TypeReference<List<ScripSearchResp>>() {});
+		        } else {
+		            responses = scripSearchRepo.getScrips(reqModel);
+		            if (responses != null && responses.size() > 0) {
+		                String indexKey = reqModel.getSearchText().trim().toUpperCase();
+		                String indexData = RedisConfig.getInstance().getJedis().get(indexKey);
+
+		                if (indexData != null) {
+		                    ScripSearchResp result = new ObjectMapper().readValue(indexData, ScripSearchResp.class);
+		                    responses.set(0, result);
+		                    if (responses.size() > 24) {
+		                        responses.remove(25);
+		                    }
+		                }
+		                // Store in Redis cache
+		                RedisConfig.getInstance().getJedis().set(cacheKey, new ObjectMapper().writeValueAsString(responses));
+		            }
+		        }
+		    } catch (Exception e) {
+		        e.printStackTrace(); // Log the exception or handle it appropriately
+		    }
 		} else {
 			responses = scripSearchRepo.getScrips(reqModel);
 		}
@@ -265,8 +323,13 @@ public class ScripsService implements ScripsServiceSpecs {
 					/*
 					 * Check the hazecast cache for the given exchange and token
 					 */
-					ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
-							.get(tempExch + "_" + tempToken);
+//					ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
+//							.get(tempExch + "_" + tempToken);
+					 String cacheKey = tempExch + "_" + tempToken;
+		                String json = RedisConfig.getInstance().getJedis().hget("contractMaster", cacheKey);
+		                if (json != null) {
+		                    ObjectMapper objectMapper = new ObjectMapper();
+		                    ContractMasterModel contractMasterModel = objectMapper.readValue(json, ContractMasterModel.class);
 					if (ObjectUtils.isNotEmpty(contractMasterModel)) {
 						RecentlyViewedModel tempResult = new RecentlyViewedModel();
 						tempResult.setAlterToken(contractMasterModel.getAlterToken());
@@ -291,6 +354,7 @@ public class ScripsService implements ScripsServiceSpecs {
 						tempResult.setWeekTag(contractMasterModel.getWeekTag());
 						recentlyViewedResonse.add(tempResult);
 					}
+				}
 				}
 				if (recentlyViewedResonse != null && recentlyViewedResonse.size() > 0) {
 					return prepareResponse.prepareSuccessResponseObject(recentlyViewedResonse);

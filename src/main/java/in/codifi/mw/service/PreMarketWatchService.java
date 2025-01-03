@@ -3,13 +3,19 @@ package in.codifi.mw.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
 import org.jboss.resteasy.reactive.RestResponse;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.mw.cache.HazelCacheController;
+import in.codifi.mw.cache.MwCacheController;
+import in.codifi.mw.cache.RedisConfig;
 import in.codifi.mw.entity.PredefinedMwEntity;
 import in.codifi.mw.entity.PredefinedMwScripsEntity;
 import in.codifi.mw.model.PreMwRequestModel;
@@ -18,13 +24,10 @@ import in.codifi.mw.model.ResponseModel;
 import in.codifi.mw.repository.PreMarketWatchRepository;
 import in.codifi.mw.repository.PredefinedMwScripRepository;
 import in.codifi.mw.service.spec.PreMarketWatchServicespec;
-import in.codifi.mw.util.ErrorMessageConstants;
 import in.codifi.mw.util.ErrorCodeConstants;
+import in.codifi.mw.util.ErrorMessageConstants;
 import in.codifi.mw.util.PrepareResponse;
 import in.codifi.mw.util.StringUtil;
-import in.codifi.mw.cache.HazelCacheController;
-import in.codifi.mw.cache.MwCacheController;
-import in.codifi.cache.model.ContractMasterModel;
 
 @ApplicationScoped
 public class PreMarketWatchService implements PreMarketWatchServicespec {
@@ -320,16 +323,15 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 					String exch = scrip.getExchange();
 					String token = scrip.getToken();				
 					
-					if (HazelCacheController.getInstance().getContractMaster()
-							.get(exch + "_" + token) != null) {
-						
-						ContractMasterModel masterData = HazelCacheController.getInstance().getContractMaster()
-								.get(exch + "_" + token);
-						
-						scrip.setMwId(data.getMwId());	
-						scrip.setToken(masterData.getToken());
-						scrip.setExchange(masterData.getExch());				
-						scrip.setSortOrder(maxSortOrder);				
+					if (RedisConfig.getInstance().getJedis().hexists("contractMaster", exch + "_" + token)) {
+						String Json = RedisConfig.getInstance().getJedis().hget("contractMaster", exch + "_" + token);
+						ObjectMapper objectMapper = new ObjectMapper();
+						// Deserialize the JSON string into an OHLCModel object
+						ContractMasterModel model = objectMapper.readValue(Json, ContractMasterModel.class);
+						scrip.setMwId(data.getMwId());
+						scrip.setToken(model.getToken());
+						scrip.setExchange(model.getExch());
+						scrip.setSortOrder(maxSortOrder);
 						response.add(scrip);
 					}
 				}
@@ -346,9 +348,17 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 	 */
 	private PredefinedMwScripsEntity enrichWithCacheData(PredefinedMwScripsEntity scrip) {
 	    String cacheKey = scrip.getExchange() + "_" + scrip.getToken();
-	    ContractMasterModel masterData = HazelCacheController.getInstance()
-	            .getContractMaster()
-	            .get(cacheKey);
+	    
+//	    ContractMasterModel masterData = HazelCacheController.getInstance()
+//	            .getContractMaster()
+//	            .get(cacheKey);
+	    if (RedisConfig.getInstance().getJedis().hexists("contractMaster", cacheKey)) {
+	        String json = RedisConfig.getInstance().getJedis().hget("contractMaster", cacheKey);
+
+	        try {
+	            // Deserialize the JSON string into a ContractMasterModel object
+	            ObjectMapper objectMapper = new ObjectMapper();
+	            ContractMasterModel masterData = objectMapper.readValue(json, ContractMasterModel.class);
 	    
 	    if (masterData != null) {
 	        scrip.setSymbol(masterData.getSymbol());
@@ -358,6 +368,10 @@ public class PreMarketWatchService implements PreMarketWatchServicespec {
 	        scrip.setPdc(masterData.getPdc());
 	        scrip.setExpiry(masterData.getExpiry());
 	        scrip.setWeekTag(masterData.getWeekTag());
+	    }
+	        } catch (Exception e) {
+            e.printStackTrace(); // Handle JSON deserialization exception
+	    }        
 	    }
 	    return scrip;
 	}
