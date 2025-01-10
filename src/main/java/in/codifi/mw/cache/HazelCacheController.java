@@ -12,6 +12,7 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
 
 import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.cache.model.UnderlyingModel;
 import in.codifi.mw.model.PreferenceModel;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,6 +50,7 @@ public class HazelCacheController {
 
 	private Map<String, ContractMasterModel> contractMaster = getHz().getMap("contractMaster");
 	private Map<String, List<PreferenceModel>> perference = getHz().getMap("perference");
+	private Map<String, UnderlyingModel> underlyingScript = getHz().getMap("underlyingScript");
 
 	public Map<String, ContractMasterModel> getContractMaster() {
 		return contractMaster;
@@ -64,6 +66,20 @@ public class HazelCacheController {
 
 	public void setPerference(Map<String, List<PreferenceModel>> perference) {
 		this.perference = perference;
+	}
+
+	/**
+	 * @return the hazelCacheController
+	 */
+	public static HazelCacheController getHazelCacheController() {
+		return HazelCacheController;
+	}
+
+	/**
+	 * @param hazelCacheController the hazelCacheController to set
+	 */
+	public static void setHazelCacheController(HazelCacheController hazelCacheController) {
+		HazelCacheController = hazelCacheController;
 	}
 
 }

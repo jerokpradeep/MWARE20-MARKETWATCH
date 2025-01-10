@@ -12,6 +12,7 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
 
 import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.cache.model.UnderlyingModel;
 import in.codifi.mw.model.PnlLotModel;
 import in.codifi.mw.model.PromptModel;
 import in.codifi.mw.model.RecentlyViewedModel;
@@ -65,6 +66,8 @@ public class HazelcastConfig {
 	
 	private Map<String, List<PromptModel>> promptMaster = getHz().getMap("promptMaster");
 	private Map<String, List<RecentlyViewedModel>> recentlyViewed = getHz().getMap("recentlyViewed");
+	private Map<String, UnderlyingModel> underlyingScript = getHz().getMap("underlyingScript");
+
 
 
 }

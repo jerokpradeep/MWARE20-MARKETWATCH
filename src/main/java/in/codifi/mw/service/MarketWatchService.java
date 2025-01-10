@@ -338,7 +338,7 @@ public class MarketWatchService implements IMarketWatchService {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW103,
 								AppConstants.MW_NAME);
 					}
-					if (commonUtils.isValidMWRename(pDto.getMwName())) {
+					if (commonUtils.isValidMWRename(pDto.getMwName().trim())) {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW114,
 								ErrorMessageConstants.RENAME_INVALID);
 					}
@@ -1542,6 +1542,8 @@ public class MarketWatchService implements IMarketWatchService {
 	}
 
 	/**
+	 * Method to Contract Info Details
+	 * 
 	 * 
 	 */
 	@Override
@@ -1550,10 +1552,20 @@ public class MarketWatchService implements IMarketWatchService {
 			ContractInfoRespModel response = new ContractInfoRespModel();
 			List<ContractInfoDetails> detailsList = new ArrayList<>();
 			if (model != null && StringUtil.isNotNullOrEmpty(model.getToken())
-					&& StringUtil.isNotNullOrEmpty(model.getExch())) {
+					&& StringUtil.isNotNullOrEmpty(model.getExchange())) {
 				String token = model.getToken();
-				String exch = model.getExch().toUpperCase();
-				ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
+				String exch = "";
+
+				if (properties.isExchfull()) {
+					String exchangeSegment = commonUtils
+							.getExchangeSegmentNameIIFL(model.getExchange().trim().toUpperCase());
+					exch = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+				} else {
+					exch = model.getExchange().toUpperCase();
+				}
+				System.out.println(">>>>>>>>>>" + exch + "_" + token);
+
+				ContractMasterModel contractMasterModel = HazelCacheController.getInstance().getContractMaster()
 						.get(exch + "_" + token);
 				if (ObjectUtils.isNotEmpty(contractMasterModel)) {
 					ContractInfoDetails details = prepareContractInfoResp(contractMasterModel);
@@ -1564,8 +1576,8 @@ public class MarketWatchService implements IMarketWatchService {
 							&& StringUtil.isNotNullOrEmpty(contractMasterModel.getAlterToken())) {
 						String altExch = exch.equalsIgnoreCase("BSE") ? "NSE" : "BSE";
 
-						ContractMasterModel alterContractMasterModel = HazelcastConfig.getInstance().getContractMaster()
-								.get(altExch + "_" + contractMasterModel.getAlterToken());
+						ContractMasterModel alterContractMasterModel = HazelCacheController.getInstance()
+								.getContractMaster().get(altExch + "_" + contractMasterModel.getAlterToken());
 						if (alterContractMasterModel != null) {
 							ContractInfoDetails altDetails = prepareContractInfoResp(alterContractMasterModel);
 							detailsList.add(altDetails);
@@ -1575,10 +1587,10 @@ public class MarketWatchService implements IMarketWatchService {
 					response.setIsin(contractMasterModel.getIsin());
 					response.setScrips(detailsList);
 
-					String userId = info.getUserId();
-					if (StringUtil.isNotNullOrEmpty(userId)) {
-						saveRecentlyViewedScrips(exch, model.getToken(), userId, contractMasterModel.getExpiry());
-					}
+//					String userId = info.getUserId();
+//					if (StringUtil.isNotNullOrEmpty(userId)) {
+//						saveRecentlyViewedScrips(exch, model.getToken(), userId, contractMasterModel.getExpiry());
+//					}
 					return prepareResponse.prepareSuccessResponseObject(response);
 				} else {
 					return prepareResponse.prepareFailedResponse(AppConstants.TOKEN_NOT_EXISTS);
@@ -1602,19 +1614,43 @@ public class MarketWatchService implements IMarketWatchService {
 	private ContractInfoDetails prepareContractInfoResp(ContractMasterModel model) {
 		ContractInfoDetails details = new ContractInfoDetails();
 
-		/** To add prompt message **/
-		if (model != null && (model.getExch().equalsIgnoreCase("NSE") || model.getExch().equalsIgnoreCase("BSE"))) {
-			if (HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch()) != null
-					&& HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch())
-							.size() > 0) {
-				List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMaster()
-						.get(model.getIsin() + "_" + model.getExch());
-				if (prompt != null && prompt.size() > 0) {
-					details.setPrompt(prompt);
+//		if (properties.isExchfull()) {
+//			String exchNse = model.getExch().replace("NSEEQ", "NSE");
+//			String exchBse = model.getExch().replace("BSEEQ", "BSE");
+//
+//			/** To add prompt message **/
+//			if (model != null && (exchNse.equalsIgnoreCase("NSE") || exchBse.equalsIgnoreCase("BSE"))) {
+//				if (HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch()) != null
+//						&& HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch())
+//								.size() > 0) {
+//					List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMaster()
+//							.get(model.getIsin() + "_" + model.getExch());
+//					if (prompt != null && prompt.size() > 0) {
+//						details.setPrompt(prompt);
+//					}
+//				}
+//			}
+//		}else {
+			/** To add prompt message **/
+			if (model != null && (model.getExch().equalsIgnoreCase("NSE") || model.getExch().equalsIgnoreCase("BSE"))) {
+				if (HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch()) != null
+						&& HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch())
+								.size() > 0) {
+					List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMaster()
+							.get(model.getIsin() + "_" + model.getExch());
+					if (prompt != null && prompt.size() > 0) {
+						details.setPrompt(prompt);
+					}
 				}
 			}
+//		}
+
+		if (properties.isExchfull()) {
+			details.setExchange(commonUtils.getExchangeNameIIFL(model.getExch().trim().toUpperCase()));
+		} else {
+			details.setExchange(model.getExch());
 		}
-		details.setExchange(model.getExch());
+
 		details.setLotSize(model.getLotSize());
 		details.setTickSize(model.getTickSize());
 		details.setToken(model.getToken());
@@ -1810,7 +1846,7 @@ public class MarketWatchService implements IMarketWatchService {
 						Date expiry = masterData.getExpiry();
 						String expDate = new SimpleDateFormat("YYYY-MM-dd").format(expiry);
 						obj.put("expiry", expDate);
-					}else {
+					} else {
 						obj.put("expiry", "");
 					}
 //					obj.put("weekTag", masterData.getWeekTag());
