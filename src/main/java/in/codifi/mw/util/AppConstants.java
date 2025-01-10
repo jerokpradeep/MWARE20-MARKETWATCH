@@ -121,7 +121,7 @@ public class AppConstants {
 	public static final String TOKEN_NOT_EXISTS = "The token does not exists";
 
 	public static final String HOLDING_MW_ID = "101";
-	public static final String HOLDING_MW_NAME = "MYSTOCKS";
+	public static final String HOLDING_MW_NAME = "MY STOCKS";
 	
 	public static final String POSITION_MW_ID = "102";
 	public static final String POSITION_MW_NAME = "Positions";
@@ -130,6 +130,7 @@ public class AppConstants {
 	public static final String RECENTLY_SEARCH_DELETED = "Recently search Scrips should not be deleted.";
 	public static final String RECENTLY_SEARCH_RENAME = "Recently search Scrips should not be rename.";
 	public static final String RECENTLY_SEARCH_SORTING = "Recently search Scrips should not be sorting order";
-
+	public static final String UNDERLYING_LOAD_SUCESS = "Underlying loaded sucessfully";
+	public static final String UNDERLYING_LOAD_FAILED = "Failed to load Underlying";
 	
 }

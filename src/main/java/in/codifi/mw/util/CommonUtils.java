@@ -39,7 +39,7 @@ public class CommonUtils {
 	public boolean isValidMWRename(String input) {
 		// Use a regex to check if the input matches any of the valid values
 		return input.toUpperCase().matches(
-				"NIFTY 50|NIFTY50|RECENTLYVIEWED|RECENTLY VIEWED|MY STOCK|MYSTOCK|Positions|Holdings|Recently Searched|My Stocks");
+				"NIFTY 50|NIFTY50|RECENTLYVIEWED|RECENTLY VIEWED|MYSTOCKS|MYSTOCK|Positions|Holdings|RECENTLY VIEWED|MY STOCKS");
 	}
 
 	public boolean isValidExchSegment(String input) {

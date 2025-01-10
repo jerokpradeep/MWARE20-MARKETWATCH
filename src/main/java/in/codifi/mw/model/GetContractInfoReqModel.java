@@ -15,6 +15,6 @@ import lombok.Setter;
 @Setter
 public class GetContractInfoReqModel {
 
-	private String exch;
+	private String exchange;
 	private String token;
 }

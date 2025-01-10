@@ -69,29 +69,33 @@ public class ScripsService implements ScripsServiceSpecs {
 	public RestResponse<ResponseModel> getScrips(SearchScripReqModel reqModel) {
 		List<ScripSearchResp> responses = new ArrayList<>();
 		try {
-			int tempPageSize = (StringUtil.isNullOrEmpty(reqModel.getPageSize())
-					|| reqModel.getPageSize().equalsIgnoreCase("0")) ? 50 : Integer.parseInt(reqModel.getPageSize());
-			int currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage())
-					|| reqModel.getCurrentPage().equalsIgnoreCase("0") ? 1
-							: Integer.parseInt(reqModel.getCurrentPage());
-			if (StringUtil.isNotNullOrEmptyAfterTrim(reqModel.getPageSize())) {
+			int tempPageSize = (StringUtil.isNullOrEmpty(reqModel.getPageSize().trim())
+					|| reqModel.getPageSize().trim().equalsIgnoreCase("0")) ? 50 : Integer.parseInt(reqModel.getPageSize().trim());
+			int currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage().trim())
+					|| reqModel.getCurrentPage().trim().equalsIgnoreCase("0") ? 1
+							: Integer.parseInt(reqModel.getCurrentPage().trim());
+			if (StringUtil.isNotNullOrEmptyAfterTrim(reqModel.getPageSize().trim())) {
 				if (!commonUtils.isPositiveWholeNumber(reqModel.getPageSize().trim())) {
-					return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PAGE_SIZE);
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW125,
+							AppConstants.INVALID_PAGE_SIZE);
 				} else {
 					if (!commonUtils.isBetweenOneAndhundred(Integer.parseInt(reqModel.getPageSize().trim()))) {
-						return prepareResponse.prepareMWFailedResponseString(AppConstants.PAGE_SIZE_100);
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW126,
+								AppConstants.PAGE_SIZE_100);
 					}
 					tempPageSize = Integer.parseInt(reqModel.getPageSize().trim());
 				}
 			}
 
-			if (StringUtil.isNotNullOrEmptyAfterTrim(reqModel.getCurrentPage())) {
+			if (StringUtil.isNotNullOrEmptyAfterTrim(reqModel.getCurrentPage().trim())) {
 
 				if (!commonUtils.isPositiveWholeNumber(reqModel.getCurrentPage().trim())) {
-					return prepareResponse.prepareFailedResponse(AppConstants.INVALID_CURRENT_PAGE);
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW127,
+							AppConstants.INVALID_CURRENT_PAGE);
 				} else {
 					if (!commonUtils.isBetweenOneAndfifty(Integer.parseInt(reqModel.getCurrentPage().trim()))) {
-						return prepareResponse.prepareMWFailedResponseString(AppConstants.CURRENT_PAGE_50);
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW128,
+								AppConstants.CURRENT_PAGE_50);
 					}
 				}
 
@@ -174,7 +178,7 @@ public class ScripsService implements ScripsServiceSpecs {
 
 			if (properties.isExchfull()) {
 				// Apply the switch statement to adjust the filename
-				switch (exch.toUpperCase()) {
+				switch (exch.toUpperCase().trim()) {
 				case "NSEEQ":
 					adjustedExchange = "NSE";
 					break;
@@ -204,7 +208,7 @@ public class ScripsService implements ScripsServiceSpecs {
 					break;
 				}
 			}else {
-				adjustedExchange = exch.toUpperCase();
+				adjustedExchange = exch.toUpperCase().trim();
 			}
 			
 			// Add the adjusted filename to the ArrayList
