@@ -52,6 +52,7 @@ public class ErrorMessageConstants {
 	public static final String NOT_FOUND = "No record found";
 	public static final String INVALID_EXCHANGE = "Invalid parameter : 'exchange' Accepts only {'ALL','NSEEQ','NSEFO','BSEEQ','BSEFO','NSECURR','BSECURR','MCXCOMM','NCDEXCOMM','NSECOMM','BSECOMM'}";
 	public static final String INVALID_EXCHANGE_SEGMENT = "Invalid parameter : 'segment' Accepts only {'NSE','NFO','BSE','BFO','CDS','BCD','MCX','NCDEX','NCO','BCO'}";
+	public static final String INVALID_EXCHANGE_INFO = "Invalid parameter : 'exchange' Accepts only {'NSEEQ','NSEFO','BSEEQ','BSEFO','NSECURR','BSECURR','MCXCOMM','NCDEXCOMM','NSECOMM','BSECOMM'}";
 
 	public static final String ERROR_MIN_CHAR = "Minimum 2 characters required";
 
