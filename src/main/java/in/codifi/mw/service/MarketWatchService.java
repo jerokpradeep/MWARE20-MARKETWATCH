@@ -1348,7 +1348,7 @@ public class MarketWatchService implements IMarketWatchService {
 
 			if (!commonUtils.isValidExch(model.getExchange().trim())) {
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-						ErrorMessageConstants.INVALID_EXCHANGE);
+						ErrorMessageConstants.INVALID_EXCHANGE_INFO);
 			}
 			if (StringUtil.isNotNullOrEmpty(model.getSegment())
 					&& !commonUtils.isValidExchSegment(model.getSegment().trim())) {
@@ -1394,7 +1394,12 @@ public class MarketWatchService implements IMarketWatchService {
 				infoResult.setSliceEnable("");
 				infoResult.setSurveillance("");
 				infoResult.setScripIndex(false);
-				infoResult.setFnOAvailable(masterData.getOptionType() == "1" ? true : false);
+//				infoResult.setFnOAvailable(masterData.getOptionType() == "1" ? true : false);
+				if (HazelCacheController.getInstance().getUnderlyingScript().get(masterData.getSymbol()) != null) {
+					infoResult.setFnOAvailable(true);
+				} else {
+					infoResult.setFnOAvailable(false);
+				}
 				infoResult.setCompanyName(masterData.getCompanyName());
 
 				SpotData spotDataResult = new SpotData();

@@ -203,6 +203,9 @@ public class ScripsService implements ScripsServiceSpecs {
 				case "NSECOMM":
 					adjustedExchange = "NCO";
 					break;
+				case "NCDEXCOMM":
+					adjustedExchange = "NCDEXCOMM";
+					break;
 				default:
 					// Keep filename as is if no match is found
 					break;

@@ -108,6 +108,8 @@ public class CommonUtils {
 				exch = "BSE";
 			} else if (exchSeg.equalsIgnoreCase("mcx_idx")) {
 				exch = "MCX";
+			}else if (exchSeg.equalsIgnoreCase("ncdex")) {
+				exch = "NCDEX";
 			}
 		} catch (Exception e) {
 			return exch;
@@ -176,6 +178,8 @@ public class CommonUtils {
 				exch = "BSECOMM";
 			} else if (exchSeg.equalsIgnoreCase("BSE")) {
 				exch = "BSEEQ";
+			}else if (exchSeg.equalsIgnoreCase("NCDEXCOMM")) {
+				exch = "NCDEXCOMM";
 			}
 		} catch (Exception e) {
 			return exch;
@@ -275,6 +279,7 @@ public class CommonUtils {
 		hardcodedExchanges.add("BSECURR");
 		hardcodedExchanges.add("MCXCOMM");
 		hardcodedExchanges.add("NSECOMM");
+		hardcodedExchanges.add("NCDEXCOMM");
 		hardcodedExchanges.add("ALL");
 
 		// Check if any of the reqModel values are in the hardcodedExchanges list
