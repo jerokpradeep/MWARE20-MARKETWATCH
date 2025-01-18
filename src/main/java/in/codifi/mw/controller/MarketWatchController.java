@@ -65,7 +65,7 @@ public class MarketWatchController implements IMarketWatchController {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
-		return iMarketWatchService.createMW(info.getUcc());
+		return iMarketWatchService.createMW(info.getUserId());
 //		return iMarketWatchService.createMW("Test109");
 
 	}
@@ -89,7 +89,7 @@ public class MarketWatchController implements IMarketWatchController {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
-		
+
 		return iMarketWatchService.renameMarketWatch(pDto, info.getUcc());
 
 	}
@@ -263,8 +263,7 @@ public class MarketWatchController implements IMarketWatchController {
 		}
 		return iMarketWatchService.getSecurityInfo(model, info);
 	}
-	
-	
+
 	/***
 	 * 
 	 */
@@ -278,10 +277,9 @@ public class MarketWatchController implements IMarketWatchController {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
 		}
-		return iMarketWatchService.getContractInfo(reqModel,info);
+		return iMarketWatchService.getContractInfo(reqModel, info);
 	}
-	
-	
+
 	/**
 	 * 
 	 * @param pDto
@@ -296,7 +294,7 @@ public class MarketWatchController implements IMarketWatchController {
 //		} else {
 //			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 //		}
-		
+
 		ClinetInfoModel info = appUtil.getClientInfo();
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");

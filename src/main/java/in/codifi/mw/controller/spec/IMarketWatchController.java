@@ -99,7 +99,7 @@ public interface IMarketWatchController {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "Get Scrip details for given user id .")
-	RestResponse<ResponseModel> getAllMwScrips();
+	public RestResponse<ResponseModel> getAllMwScrips();
 
 	/**
 	 * Method to geIndices
@@ -119,7 +119,7 @@ public interface IMarketWatchController {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	RestResponse<ResponseModel> getcommodityContarct(MwCommodityContarctModel pDto);
+	public RestResponse<ResponseModel> getcommodityContarct(MwCommodityContarctModel pDto);
 
 	/**
 	 * 
@@ -130,14 +130,14 @@ public interface IMarketWatchController {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	RestResponse<ResponseModel> getSecurityInfo(SecurityInfoReqModel model);
+	public RestResponse<ResponseModel> getSecurityInfo(SecurityInfoReqModel model);
 
 	@Path("/contract/info")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "Get contract info")
-	RestResponse<ResponseModel> getContractInfo(GetContractInfoReqModel reqModel);
+	public RestResponse<ResponseModel> getContractInfo(GetContractInfoReqModel reqModel);
 
 	/**
 	 * @param pDto
@@ -148,5 +148,5 @@ public interface IMarketWatchController {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "Get Scrip details for given user id .")
-	RestResponse<ResponseModel> getAllMwScripsMob(MwRequestModel pDto);
+	public RestResponse<ResponseModel> getAllMwScripsMob(MwRequestModel pDto);
 }

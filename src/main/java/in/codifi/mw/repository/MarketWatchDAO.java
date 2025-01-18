@@ -12,12 +12,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
-import org.json.simple.JSONObject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import in.codifi.cache.model.ContractMasterModel;
-import in.codifi.mw.cache.HazelCacheController;
 import in.codifi.mw.cache.RedisConfig;
 import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.entity.MarketWatchNameDTO;
@@ -37,11 +34,10 @@ import io.quarkus.logging.Log;
  */
 @ApplicationScoped
 public class MarketWatchDAO {
-
+	@Named("mw")
 	@Inject
 	DataSource dataSource;
 
-	@Named("mw")
 	@Inject
 	DataSource entityManager;
 
@@ -611,8 +607,10 @@ public class MarketWatchDAO {
 			pStmt.setInt(paramPos++, pDto.getMwId());
 			pStmt.setString(paramPos++, userId);
 			pStmt.setString(paramPos++, pDto.getScripData().get(0).getToken().trim());
-			pStmt.setString(paramPos++,
-					commonUtils.getExchangeNameContract(pDto.getScripData().get(0).getExchange().trim()));
+
+			pStmt.setString(paramPos++, pDto.getScripData().get(0).getExchange().trim());
+//			pStmt.setString(paramPos++,
+//					commonUtils.getExchangeNameContract(pDto.getScripData().get(0).getExchange().trim()));
 			rSet = pStmt.executeQuery();
 			if (rSet != null) {
 				while (rSet.next()) {
@@ -786,13 +784,13 @@ public class MarketWatchDAO {
 					model.setWeekTag(rSet.getString("week_tag"));
 					System.out.println(rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token"));
 					// Save the model in HazelCache
-					  String cacheKey = rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token");
-		                ObjectMapper objectMapper = new ObjectMapper();
-		                String json = objectMapper.writeValueAsString(model);
+					String cacheKey = rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token");
+					ObjectMapper objectMapper = new ObjectMapper();
+					String json = objectMapper.writeValueAsString(model);
 
-		                // Storing in Redis (use "contractMaster" as Redis hash name)
-		                RedisConfig.getInstance().getJedis().hset("contractMaster", cacheKey, json);
-		            }
+					// Storing in Redis (use "contractMaster" as Redis hash name)
+					RedisConfig.getInstance().getJedis().hset("contractMaster", cacheKey, json);
+				}
 //					HazelCacheController.getInstance().getContractMaster()
 //							.put(rSet.getString("exch").toUpperCase() + "_" + rSet.getString("token"), model);
 			}

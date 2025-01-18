@@ -1,13 +1,11 @@
 
 package in.codifi.mw.controller;
 
-
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import in.codifi.mw.model.ClinetInfoModel;
-
 
 /**
  * @author Vicky
@@ -44,10 +42,12 @@ public class DefaultRestController {
 		model.setUserId(this.idToken.getClaim(USER_ID_KEY).toString().toUpperCase());
 		if (this.idToken.containsClaim(UCC)) {
 			model.setUcc(this.idToken.getClaim(UCC).toString());
+		} else {
+			model.setUcc(this.idToken.getClaim(USER_ID_KEY).toString().toUpperCase());
 		}
 		return model;
 	}
-	
+
 	public String getAcToken() {
 		return this.accessToken.getRawToken();
 	}

@@ -89,7 +89,7 @@ public class AppConstants {
 	public static final String PREDEFINED_MW = "PreDefinedMWList";
 	public static final String HOLDINGS_MW = "HoldingsMWList";
 	public static final String POSITION_MW = "PostionsMWList";
-	
+
 	public static final String TEMP_USER_ID = "CD-ADMIN";
 
 	public static final String MODULE_MW = "Marketwatch";
@@ -122,14 +122,13 @@ public class AppConstants {
 
 	public static final String HOLDING_MW_ID = "101";
 	public static final String HOLDING_MW_NAME = "MYSTOCKS";
-	
+
 	public static final String POSITION_MW_ID = "102";
 	public static final String POSITION_MW_NAME = "Positions";
 	public static final String RECENTLY_SEARCHED_MW_NAME = "Recently Viewed";
-	
+
 	public static final String RECENTLY_SEARCH_DELETED = "Recently search Scrips should not be deleted.";
 	public static final String RECENTLY_SEARCH_RENAME = "Recently search Scrips should not be rename.";
 	public static final String RECENTLY_SEARCH_SORTING = "Recently search Scrips should not be sorting order";
 
-	
 }

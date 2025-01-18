@@ -15,12 +15,13 @@ import javax.inject.Inject;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jboss.resteasy.reactive.RestResponse;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import in.codifi.cache.model.ContractMasterModel;
 import in.codifi.mw.cache.RedisConfig;
+import in.codifi.mw.cache.RedisConstants;
 import in.codifi.mw.config.ApplicationProperties;
-import in.codifi.mw.config.HazelcastConfig;
 import in.codifi.mw.entity.secondary.RecentlyViewedEntity;
 import in.codifi.mw.model.ClinetInfoModel;
 import in.codifi.mw.model.ErrorResponseModel;
@@ -39,8 +40,9 @@ import in.codifi.mw.util.ErrorMessageConstants;
 import in.codifi.mw.util.PrepareResponse;
 import in.codifi.mw.util.StringUtil;
 import io.quarkus.logging.Log;
-import com.fasterxml.jackson.core.type.TypeReference;
-
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisException;
 
 /**
  * @author Vicky
@@ -59,145 +61,133 @@ public class ScripsService implements ScripsServiceSpecs {
 
 	@Inject
 	CommonUtils commonUtils;
-	
-	@Inject	
+
+	@Inject
 	ApplicationProperties properties;
 
 	@Inject
 	RecentlyViewedRepository recentlyViewedRepository;
-	
+
 	/**
 	 *
 	 */
-	@SuppressWarnings("unchecked")
-	@Override
 	public RestResponse<ResponseModel> getScrips(SearchScripReqModel reqModel) {
 		List<ScripSearchResp> responses = new ArrayList<>();
+		JedisPool jedisPool = RedisConfig.getInstance().getJedisPool();
+		Jedis jedis = null; // Declare Jedis here to manage it properly
+
 		try {
-			int tempPageSize = (StringUtil.isNullOrEmpty(reqModel.getPageSize())
-					|| reqModel.getPageSize().equalsIgnoreCase("0")) ? 50 : Integer.parseInt(reqModel.getPageSize());
-			int currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage())
-					|| reqModel.getCurrentPage().equalsIgnoreCase("0") ? 1
-							: Integer.parseInt(reqModel.getCurrentPage());
-			if (StringUtil.isNotNullOrEmptyAfterTrim(reqModel.getPageSize())) {
-				if (!commonUtils.isPositiveWholeNumber(reqModel.getPageSize().trim())) {
+			// Validate and set page size
+			int tempPageSize = 50;
+			String pageSize = reqModel.getPageSize();
+			if (StringUtil.isNotNullOrEmptyAfterTrim(pageSize)) {
+				if (!commonUtils.isPositiveWholeNumber(pageSize.trim())) {
 					return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PAGE_SIZE);
-				} else {
-					if (!commonUtils.isBetweenOneAndhundred(Integer.parseInt(reqModel.getPageSize().trim()))) {
-						return prepareResponse.prepareMWFailedResponseString(AppConstants.PAGE_SIZE_100);
-					}
-					tempPageSize = Integer.parseInt(reqModel.getPageSize().trim());
 				}
+				int parsedPageSize = Integer.parseInt(pageSize.trim());
+				if (!commonUtils.isBetweenOneAndhundred(parsedPageSize)) {
+					return prepareResponse.prepareMWFailedResponseString(AppConstants.PAGE_SIZE_100);
+				}
+				tempPageSize = parsedPageSize;
 			}
 
-			if (StringUtil.isNotNullOrEmptyAfterTrim(reqModel.getCurrentPage())) {
-
-				if (!commonUtils.isPositiveWholeNumber(reqModel.getCurrentPage().trim())) {
+			// Validate and set current page
+			int currentPage = 1;
+			String currentPageStr = reqModel.getCurrentPage();
+			if (StringUtil.isNotNullOrEmptyAfterTrim(currentPageStr)) {
+				if (!commonUtils.isPositiveWholeNumber(currentPageStr.trim())) {
 					return prepareResponse.prepareFailedResponse(AppConstants.INVALID_CURRENT_PAGE);
-				} else {
-					if (!commonUtils.isBetweenOneAndfifty(Integer.parseInt(reqModel.getCurrentPage().trim()))) {
-						return prepareResponse.prepareMWFailedResponseString(AppConstants.CURRENT_PAGE_50);
-					}
 				}
-
+				int parsedCurrentPage = Integer.parseInt(currentPageStr.trim());
+				if (!commonUtils.isBetweenOneAndfifty(parsedCurrentPage)) {
+					return prepareResponse.prepareMWFailedResponseString(AppConstants.CURRENT_PAGE_50);
+				}
+				currentPage = parsedCurrentPage;
 			}
 
-			/* To check where to fetch data */
-//			if (HazelcastConfig.getInstance().getFetchDataFromCache().get(AppConstants.FETCH_DATA_FROM_CACHE) != null
-//					&& HazelcastConfig.getInstance().getFetchDataFromCache().get(AppConstants.FETCH_DATA_FROM_CACHE)) {
-//
-//				if (reqModel.getSearchText().trim().length() < 2) {
-//					if (HazelcastConfig.getInstance().getDistinctSymbols()
-//							.get(reqModel.getSearchText().trim().length()) != null
-//							&& HazelcastConfig.getInstance().getDistinctSymbols()
-//									.get(reqModel.getSearchText().trim().length()).size() > 0
-//							&& HazelcastConfig.getInstance().getDistinctSymbols()
-//									.get(reqModel.getSearchText().trim().length())
-//									.contains(reqModel.getSearchText().trim().toUpperCase())) {
-//						responses = getSearchDetailsFromCache(reqModel);
-//					}
-//				} else {
-//					responses = getSearchDetailsFromCache(reqModel);
-//				}
-//			} else {
-//				if (reqModel.getSearchText().trim().length() < 2) {
-//					if (HazelcastConfig.getInstance().getDistinctSymbols()
-//							.get(reqModel.getSearchText().trim().length()) != null
-//							&& HazelcastConfig.getInstance().getDistinctSymbols()
-//									.get(reqModel.getSearchText().trim().length()).size() > 0
-//							&& HazelcastConfig.getInstance().getDistinctSymbols()
-//									.get(reqModel.getSearchText().trim().length())
-//									.contains(reqModel.getSearchText().trim().toUpperCase())) {
-//						responses = scripSearchRepo.getScrips(reqModel);
-//					}
-//				} else {
-//					responses = scripSearchRepo.getScrips(reqModel);
-//				}
-//			}
-			  String fetchDataFromCache = RedisConfig.getInstance().getJedis().hget("fetchDataFromCache", AppConstants.FETCH_DATA_FROM_CACHE);
-		        if (fetchDataFromCache != null && Boolean.parseBoolean(fetchDataFromCache)) {
+			// Fetch data from cache if enabled
+			String fetchDataFromCache = null;
+			try {
+				jedis = jedisPool.getResource(); // Get a connection from the pool
+				fetchDataFromCache = jedis.hget(RedisConstants.FETCHDATAFROMCACHE, AppConstants.FETCH_DATA_FROM_CACHE);
+			} catch (JedisException e) {
+				Log.error("Error fetching data from Redis: " + e.getMessage(), e);
+				return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS); // Return failed response if
+																							// Redis fails
+			}
 
-		            if (reqModel.getSearchText().trim().length() < 2) {
-		                String cacheKey = String.valueOf(reqModel.getSearchText().trim().length());
-		                List<String> distinctSymbols = RedisConfig.getInstance().getJedis().lrange("distinctSymbols_" + cacheKey, 0, -1);
-		                if (distinctSymbols != null && distinctSymbols.size() > 0
-		                        && distinctSymbols.contains(reqModel.getSearchText().trim().toUpperCase())) {
-		                    responses = getSearchDetailsFromCache(reqModel);
-		                }
-		            } else {
-		                responses = getSearchDetailsFromCache(reqModel);
-		            }
-		        } else {
-		            if (reqModel.getSearchText().trim().length() < 2) {
-		                String cacheKey = String.valueOf(reqModel.getSearchText().trim().length());
-		                List<String> distinctSymbols = RedisConfig.getInstance().getJedis().lrange("distinctSymbols_" + cacheKey, 0, -1);
-		                if (distinctSymbols != null && distinctSymbols.size() > 0
-		                        && distinctSymbols.contains(reqModel.getSearchText().trim().toUpperCase())) {
-		                    responses = scripSearchRepo.getScrips(reqModel);
-		                }
-		            } else {
-		                responses = scripSearchRepo.getScrips(reqModel);
-		            }
-		        }
+			if (Boolean.parseBoolean(fetchDataFromCache)) {
+				// Handle cache logic
+				String searchText = reqModel.getSearchText().trim();
+				if (searchText.length() < 2) {
+					String cacheKey = String.valueOf(searchText.length());
+					List<String> distinctSymbols = jedis.lrange("distinctSymbols_" + cacheKey, 0, -1);
+					if (distinctSymbols != null && !distinctSymbols.isEmpty()
+							&& distinctSymbols.contains(searchText.toUpperCase())) {
+						responses = getSearchDetailsFromCache(reqModel);
+					}
+				} else {
+					responses = getSearchDetailsFromCache(reqModel);
+				}
+			} else {
+				// Handle DB logic
+				String searchText = reqModel.getSearchText().trim();
+				if (searchText.length() < 2) {
+					String cacheKey = String.valueOf(searchText.length());
+					List<String> distinctSymbols = jedis.lrange("distinctSymbols_" + cacheKey, 0, -1);
+					if (distinctSymbols != null && !distinctSymbols.isEmpty()
+							&& distinctSymbols.contains(searchText.toUpperCase())) {
+						responses = scripSearchRepo.getScrips(reqModel);
+					}
+				} else {
+					responses = scripSearchRepo.getScrips(reqModel);
+				}
+			}
+
+			// Calculate page count
 			String totalCount = scripSearchRepo.getScripsCount(reqModel);
 			int pageCount = 0;
 			if (StringUtil.isNotNullOrEmptyAfterTrim(totalCount)) {
-//				pageCount = Integer.parseInt(totalCount) / tempPageSize;
 				pageCount = (int) Math.ceil((double) Integer.parseInt(totalCount) / tempPageSize);
 			}
 
-			if (responses != null && responses.size() > 0) {
+			// Prepare the response
+			if (responses != null && !responses.isEmpty()) {
 				SearchModel finalOutput = new SearchModel();
 				finalOutput.setCurrentPage(currentPage);
-				finalOutput.setPageCount(Math.round(pageCount));
+				finalOutput.setPageCount(pageCount);
 				finalOutput.setSearchResult(responses);
 				return prepareResponse.prepareSuccessResponseWithMessage(finalOutput, AppConstants.SUCCESS_STATUS,
 						false);
 			} else {
-				// Create the main JSONObject
+				// Return empty result response
 				SearchModel obj = new SearchModel();
-				// Add values in the specific order you need
-				obj.setCurrentPage(0);
 				obj.setCurrentPage(0);
 				obj.setSearchResult(Collections.emptyList());
 				return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW111,
 						ErrorMessageConstants.NOT_FOUND, obj);
 			}
+
 		} catch (Exception e) {
-			e.printStackTrace();
-			Log.error(e.getMessage());
+			Log.error("Error in getScrips: " + e.getMessage(), e);
+			return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
+		} finally {
+			if (jedis != null) {
+				try {
+					jedis.close(); // Always return the Jedis resource to the pool
+				} catch (Exception e) {
+					Log.error("Error closing Jedis connection: " + e.getMessage(), e);
+				}
+			}
 		}
-		return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
 	}
 
 	private List<ScripSearchResp> getSearchDetailsFromCache(SearchScripReqModel reqModel) {
-
 		List<ScripSearchResp> responses = new ArrayList<>();
 		List<String> adjustedExchangeList = new ArrayList<>();
-		/*
-		 * Check the cache is not and storing is enabled or not
-		 */
 		String[] exchange = null;
+
+		// Adjust exchange list based on properties.isExchfull()
 		for (String exch : reqModel.getExchange()) {
 			String adjustedExchange = "ALL"; // Default to the original filename
 
@@ -229,108 +219,112 @@ public class ScripsService implements ScripsServiceSpecs {
 					adjustedExchange = "NCO";
 					break;
 				default:
-					// Keep filename as is if no match is found
 					break;
 				}
-			}else {
+			} else {
 				adjustedExchange = exch.toUpperCase();
 			}
-			
-			// Add the adjusted filename to the ArrayList
-			adjustedExchangeList.add(adjustedExchange);
+
+			adjustedExchangeList.add(adjustedExchange); // Add adjusted exchange to list
 		}
-		// Convert the ArrayList to an array
 		exchange = adjustedExchangeList.toArray(new String[0]);
-		/*
-		 * Check Exchange array contains ALL
-		 */
-//		if (Arrays.stream(exchange).anyMatch("all"::equalsIgnoreCase)) {
-//			if (getLoadedSearchData.get(reqModel.getSearchText().trim().toUpperCase() + "_" + reqModel.getPageSize()
-//					+ "_" + reqModel.getCurrentPage()) != null) {
-//				responses = getLoadedSearchData.get(reqModel.getSearchText().trim().toUpperCase() + "_"
-//						+ reqModel.getPageSize() + "_" + reqModel.getCurrentPage());
-//			} else {
-//				responses = scripSearchRepo.getScrips(reqModel);
-//				if (responses != null && responses.size() > 0) {
-//					if (HazelcastConfig.getInstance().getIndexDetails()
-//							.get(reqModel.getSearchText().trim().toUpperCase()) != null) {
-//						ScripSearchResp result = HazelcastConfig.getInstance().getIndexDetails()
-//								.get(reqModel.getSearchText().trim().toUpperCase());
-//						responses.set(0, result);
-//						if (responses.size() > 24) {
-//							responses.remove(25);
-//						}
-//					}
-//					String pageSize = StringUtil.isNullOrEmpty(reqModel.getPageSize()) ? "50" : reqModel.getPageSize();
-//					String currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage()) ? "1"
-//							: reqModel.getCurrentPage();
-//					getLoadedSearchData.put(
-//							reqModel.getSearchText().trim().toUpperCase() + "_" + pageSize + "_" + currentPage,
-//							responses);
-//				}
-//			}
+
 		if (Arrays.stream(exchange).anyMatch("all"::equalsIgnoreCase)) {
-		    String cacheKey = reqModel.getSearchText().trim().toUpperCase() + "_" + reqModel.getPageSize() + "_" + reqModel.getCurrentPage();
+			// Create cache key
+			String cacheKey = reqModel.getSearchText().trim().toUpperCase() + "_" + reqModel.getPageSize() + "_"
+					+ reqModel.getCurrentPage();
 
-		    try {
-		        // Fetch from Redis cache if available
-		        String cachedData = RedisConfig.getInstance().getJedis().get(cacheKey);
-		        if (cachedData != null) {
-		            // Parse the cached data (assuming it's JSON)
-		            responses = new ObjectMapper().readValue(cachedData, new TypeReference<List<ScripSearchResp>>() {});
-		        } else {
-		            responses = scripSearchRepo.getScrips(reqModel);
-		            if (responses != null && responses.size() > 0) {
-		                String indexKey = reqModel.getSearchText().trim().toUpperCase();
-		                String indexData = RedisConfig.getInstance().getJedis().get(indexKey);
+			JedisPool jedisPool = RedisConfig.getInstance().getJedisPool();
+			Jedis jedis = null; // Declare Jedis instance to manage resource properly
 
-		                if (indexData != null) {
-		                    ScripSearchResp result = new ObjectMapper().readValue(indexData, ScripSearchResp.class);
-		                    responses.set(0, result);
-		                    if (responses.size() > 24) {
-		                        responses.remove(25);
-		                    }
-		                }
-		                // Store in Redis cache
-		                RedisConfig.getInstance().getJedis().set(cacheKey, new ObjectMapper().writeValueAsString(responses));
-		            }
-		        }
-		    } catch (Exception e) {
-		        e.printStackTrace(); // Log the exception or handle it appropriately
-		    }
+			try {
+				jedis = jedisPool.getResource(); // Get Jedis instance from pool
+
+				// Fetch from Redis cache if available
+				String cachedData = jedis.get(cacheKey);
+				if (cachedData != null) {
+					// Parse the cached data (assuming it's JSON)
+					responses = new ObjectMapper().readValue(cachedData, new TypeReference<List<ScripSearchResp>>() {
+					});
+				} else {
+					// Fetch from DB if not found in cache
+					responses = scripSearchRepo.getScrips(reqModel);
+					if (responses != null && !responses.isEmpty()) {
+						// Update the cache with the fetched data
+						String indexKey = reqModel.getSearchText().trim().toUpperCase();
+						String indexData = jedis.get(indexKey);
+
+						if (indexData != null) {
+							ScripSearchResp result = new ObjectMapper().readValue(indexData, ScripSearchResp.class);
+							responses.set(0, result); // Set index data to the first item
+							if (responses.size() > 24) {
+								responses.remove(25); // Remove extra entries if the list exceeds the limit
+							}
+						}
+
+						// Store the fetched data in Redis cache
+						jedis.set(cacheKey, new ObjectMapper().writeValueAsString(responses));
+					}
+				}
+			} catch (Exception e) {
+				Log.error("Error in getSearchDetailsFromCache: " + e.getMessage(), e);
+			} finally {
+				if (jedis != null) {
+					try {
+						jedis.close(); // Return Jedis resource to the pool
+					} catch (Exception e) {
+						Log.error("Error closing Jedis connection: " + e.getMessage(), e);
+					}
+				}
+			}
 		} else {
+			// Fetch data from DB if cache is not used
 			responses = scripSearchRepo.getScrips(reqModel);
 		}
+
 		return responses;
 	}
 
 	@Override
 	public RestResponse<ResponseModel> getRecentlyViewed(ClinetInfoModel info) {
 		ErrorResponseModel errorResponseModel = new ErrorResponseModel();
+		JedisPool jedisPool = RedisConfig.getInstance().getJedisPool();
+		Jedis jedis = null; // Declare Jedis instance for proper management
+
 		try {
 			String userId = info.getUserId();
-			/*
-			 * Check the data's are present for the given user Id into the Database
-			 */
+
+			// Check if recently viewed data exists for the given user Id in the database
 			List<RecentlyViewedEntity> recentlyViewedData = recentlyViewedRepository
 					.findAllByUserIdOrderBySortOrderAsc(userId);
+
+			if (recentlyViewedData == null || recentlyViewedData.isEmpty()) {
+				// If no data is found for the user, return a failed response with a "no data"
+				// message
+				errorResponseModel.setStatus(AppConstants.FAILED_STATUS);
+				errorResponseModel.setMessage(AppConstants.NO_DATA);
+			}
+
 			List<RecentlyViewedModel> recentlyViewedResonse = new ArrayList<>();
-			if (recentlyViewedData != null && recentlyViewedData.size() > 0) {
-				for (RecentlyViewedEntity result : recentlyViewedData) {
-					String tempToken = result.getToken();
-					String tempExch = result.getExch();
-					int sortingOrder = result.getSortOrder();
-					/*
-					 * Check the hazecast cache for the given exchange and token
-					 */
-//					ContractMasterModel contractMasterModel = HazelcastConfig.getInstance().getContractMaster()
-//							.get(tempExch + "_" + tempToken);
-					 String cacheKey = tempExch + "_" + tempToken;
-		                String json = RedisConfig.getInstance().getJedis().hget("contractMaster", cacheKey);
-		                if (json != null) {
-		                    ObjectMapper objectMapper = new ObjectMapper();
-		                    ContractMasterModel contractMasterModel = objectMapper.readValue(json, ContractMasterModel.class);
+
+			jedis = jedisPool.getResource(); // Get Jedis instance from pool
+
+			for (RecentlyViewedEntity result : recentlyViewedData) {
+				String tempToken = result.getToken();
+				String tempExch = result.getExch();
+				int sortingOrder = result.getSortOrder();
+
+				// Check the cache for the given exchange and token
+				String cacheKey = tempExch + "_" + tempToken;
+
+				String json = jedis.hget("contractMaster", cacheKey);
+				if (json != null) {
+					// If data is found in the cache, deserialize it into a ContractMasterModel
+					ObjectMapper objectMapper = new ObjectMapper();
+					ContractMasterModel contractMasterModel = objectMapper.readValue(json, ContractMasterModel.class);
+
 					if (ObjectUtils.isNotEmpty(contractMasterModel)) {
+						// Create a RecentlyViewedModel and populate it with data from the cache
 						RecentlyViewedModel tempResult = new RecentlyViewedModel();
 						tempResult.setAlterToken(contractMasterModel.getAlterToken());
 						tempResult.setCompanyName(contractMasterModel.getCompanyName());
@@ -352,23 +346,35 @@ public class ScripsService implements ScripsServiceSpecs {
 						tempResult.setToken(contractMasterModel.getToken());
 						tempResult.setTradingSymbol(contractMasterModel.getTradingSymbol());
 						tempResult.setWeekTag(contractMasterModel.getWeekTag());
-						recentlyViewedResonse.add(tempResult);
+
+						recentlyViewedResonse.add(tempResult); // Add the result to the response list
 					}
 				}
-				}
-				if (recentlyViewedResonse != null && recentlyViewedResonse.size() > 0) {
-					return prepareResponse.prepareSuccessResponseObject(recentlyViewedResonse);
-				} else {
-					errorResponseModel.setStatus(AppConstants.FAILED_STATUS);
-					errorResponseModel.setMessage(AppConstants.NO_DATA);
-				}
+			}
+
+			// If results are found, return a successful response with the recently viewed
+			// data
+			if (!recentlyViewedResonse.isEmpty()) {
+				return prepareResponse.prepareSuccessResponseObject(recentlyViewedResonse);
 			} else {
+				// If no data is found after checking the cache, return an error response
 				errorResponseModel.setStatus(AppConstants.FAILED_STATUS);
 				errorResponseModel.setMessage(AppConstants.NO_DATA);
 			}
+
 		} catch (Exception e) {
-			e.printStackTrace();
-			Log.error(e.getMessage());
+			// Log the error and return a failed response
+			Log.error("Error in getRecentlyViewed: " + e.getMessage(), e);
+			errorResponseModel.setStatus(AppConstants.FAILED_STATUS);
+			errorResponseModel.setMessage(AppConstants.INTERNAL_ERROR);
+		} finally {
+			if (jedis != null) {
+				try {
+					jedis.close(); // Ensure the Jedis resource is returned to the pool
+				} catch (Exception e) {
+					Log.error("Error closing Jedis connection: " + e.getMessage(), e);
+				}
+			}
 		}
 		return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
 	}

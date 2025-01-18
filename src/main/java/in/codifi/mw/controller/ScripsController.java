@@ -50,10 +50,10 @@ public class ScripsController implements ScripsControllerSpecs {
 			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
 					ErrorMessageConstants.INVALID_EXCH);
 		}
-		if (!commonUtils.checkExchangeIsValid(reqModel.getExchange())) {
-			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-					ErrorMessageConstants.INVALID_EXCHANGE);
-		}
+//		if (!commonUtils.checkExchangeIsValid(reqModel.getExchange())) {
+//			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+//					ErrorMessageConstants.INVALID_EXCHANGE);
+//		}
 		if (reqModel.getSearchText().trim().length() >= 2) {
 			return scripsService.getScrips(reqModel);
 		}

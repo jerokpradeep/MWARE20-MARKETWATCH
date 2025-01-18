@@ -7,12 +7,10 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import in.codifi.mw.cache.RedisConfig;
-import in.codifi.mw.config.HazelcastConfig;
 
 /**
  * @author Vicky
@@ -21,7 +19,6 @@ import in.codifi.mw.config.HazelcastConfig;
 @ApplicationScoped
 public class ContractEntityManager {
 
-	@Named("mw")
 	@Inject
 	EntityManager entityManager;
 
@@ -36,10 +33,10 @@ public class ContractEntityManager {
 			result = query.getResultList();
 			for (Object[] values : result) {
 				String isin = values[0].toString();
-	            String exchToken = values[1].toString() + "_" + values[2].toString();
-	            
-	            // Storing the isin and token mapping in Redis
-	            RedisConfig.getInstance().getJedis().hset("isinByToken", isin, exchToken);
+				String exchToken = values[1].toString() + "_" + values[2].toString();
+
+				// Storing the isin and token mapping in Redis
+				RedisConfig.getInstance().getJedis().hset("isinByToken", isin, exchToken);
 //				HazelcastConfig.getInstance().getIsinByToken().put(values[0].toString(),
 //						values[1].toString() + "_" + values[2].toString());
 			}

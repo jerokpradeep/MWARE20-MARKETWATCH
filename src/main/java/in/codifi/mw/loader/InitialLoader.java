@@ -6,9 +6,6 @@ import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
-import in.codifi.mw.cache.MwCacheController;
 import in.codifi.mw.service.ContractService;
 import io.quarkus.runtime.StartupEvent;
 
@@ -18,17 +15,17 @@ public class InitialLoader extends HttpServlet {
 
 	@Inject
 	ContractService contractService;
-	
+
 	public void init(@Observes StartupEvent ev) throws ServletException {
 
-//		System.out.println(" Market watch data pre-Lodings are started");
+		System.out.println(" Market watch data pre-Lodings are started");
 //		sevice.loadContractMaster();
 //		cacheservice.loadUserMWData();
 //		System.out.println(" Market watch data pre-Lodings are ended");
-		contractService.loadIsinByToken();
-		System.out.println(" Predefined Market watch data pre-Lodings are started");
-		MwCacheController.getMasterPredefinedMwList().clear();
-		MwCacheController.getMwListUserId().clear();
+//		contractService.loadIsinByToken();
+//		System.out.println(" Predefined Market watch data pre-Lodings are started");
+//		MwCacheController.getMasterPredefinedMwList().clear();
+//		MwCacheController.getMwListUserId().clear();
 //		cacheservice.loadPreDefinedMWData();
 		System.out.println("Get Mw List UserId clear");
 
