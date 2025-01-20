@@ -23,7 +23,7 @@ public class RedisConfig {
 		poolConfig.setTestOnBorrow(true); // Test connections before borrowing
 
 		// Create a JedisPool with the JedisPoolConfig
-		this.jedisPool = new JedisPool(poolConfig, "localhost", 6701, 2000); // Replace with actual host/port
+		this.jedisPool = new JedisPool(poolConfig, "localhost", 6379, 2000); // Replace with actual host/port
 	}
 
 	// Singleton pattern to get instance
