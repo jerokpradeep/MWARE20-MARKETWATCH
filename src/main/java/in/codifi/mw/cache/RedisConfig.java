@@ -26,7 +26,7 @@ public class RedisConfig {
 		this.jedisPool = new JedisPool(poolConfig, "localhost", 6701, 2000); // Replace with actual host/port
 	}
 
-// Singleton pattern to get instance
+	// Singleton pattern to get instance
 	public static RedisConfig getInstance() {
 		if (redisConfig == null) {
 			redisConfig = new RedisConfig();

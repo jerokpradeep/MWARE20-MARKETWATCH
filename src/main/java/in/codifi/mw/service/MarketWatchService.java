@@ -1442,9 +1442,9 @@ public class MarketWatchService implements IMarketWatchService {
 		spotDataResult.setTradingSymbol(masterData.getTradingSymbol());
 		spotDataResult.setNsebseToken(masterData.getAlterToken());
 
-		Prompt promptResult = new Prompt();
-		JSONArray promptObj = new JSONArray();
-		promptObj.add(promptResult);
+//		Prompt promptResult = new Prompt();
+//		JSONArray promptObj = new JSONArray();
+//		promptObj.add(promptResult);
 
 		ProductLeverage productLeverageResult = new ProductLeverage();
 		productLeverageResult.setDelivery("");
@@ -1458,7 +1458,7 @@ public class MarketWatchService implements IMarketWatchService {
 		badge.setHoldingqty(0);
 
 		infoResult.setSpotData(spotDataResult);
-		infoResult.setPrompt(promptObj);
+//		infoResult.setPrompt(promptObj);
 		infoResult.setProductLeverage(productLeverageResult);
 		infoResult.setBadge(badge);
 		infoResult.setScreeners(new JSONArray());
