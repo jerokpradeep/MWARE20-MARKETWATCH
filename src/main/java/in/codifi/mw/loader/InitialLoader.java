@@ -6,10 +6,9 @@ import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import in.codifi.mw.cache.MwCacheController;
 import in.codifi.mw.service.ContractService;
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.StartupEvent;
 
 @ApplicationScoped
@@ -32,5 +31,7 @@ public class InitialLoader extends HttpServlet {
 //		cacheservice.loadPreDefinedMWData();
 		System.out.println("Get Mw List UserId clear");
 		contractService.loadUnderlyingScrips();
+		Log.info("Started to loading contract master");
+		contractService.loadContractMaster();
 	}
 }

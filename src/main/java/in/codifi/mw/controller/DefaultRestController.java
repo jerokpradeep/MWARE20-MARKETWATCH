@@ -2,11 +2,14 @@
 package in.codifi.mw.controller;
 
 
+import java.util.Set;
+
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import in.codifi.mw.model.ClinetInfoModel;
+import io.quarkus.logging.Log;
 
 
 /**
@@ -41,6 +44,14 @@ public class DefaultRestController {
 	 */
 	public ClinetInfoModel clientInfo() {
 		ClinetInfoModel model = new ClinetInfoModel();
+//		Set<String> claims = this.idToken.getClaimNames();
+//
+//		// Print all keys
+//		for (String key : claims) {
+//		    System.out.println("Key: " + key);
+//		}
+//		Log.info("--------> "+this.idToken.getClaim(USER_ID_KEY).toString());
+//		Log.info("--------------> "+this.idToken.getClaim(USER_ID_KEY).toString().toUpperCase());
 		model.setUserId(this.idToken.getClaim(USER_ID_KEY).toString().toUpperCase());
 		if (this.idToken.containsClaim(UCC)) {
 			model.setUcc(this.idToken.getClaim(UCC).toString());

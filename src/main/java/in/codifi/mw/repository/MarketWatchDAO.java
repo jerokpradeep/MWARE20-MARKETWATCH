@@ -32,13 +32,14 @@ import io.quarkus.logging.Log;
  * @author Vicky
  *
  */
+
 @ApplicationScoped
 public class MarketWatchDAO {
-
+	@Named("mw")
 	@Inject
 	DataSource dataSource;
 
-	@Named("mw")
+	
 	@Inject
 	DataSource entityManager;
 

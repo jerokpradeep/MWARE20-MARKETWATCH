@@ -61,16 +61,17 @@ public class ScripsController implements ScripsControllerSpecs {
 		return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW112,
 				ErrorMessageConstants.ERROR_MIN_CHAR);
 	}
-	
+
 	@Override
 	public RestResponse<ResponseModel> getRecentlyViewed() {
 		ClinetInfoModel info = appUtil.getClientInfo();
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
-		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
-			return prepareResponse.prepareFailedResponse(AppConstants.GUEST_USER_ERROR);
 		}
+//		else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+//			return prepareResponse.prepareFailedResponse(AppConstants.GUEST_USER_ERROR);
+//		}
 		return scripsService.getRecentlyViewed(info);
 	}
 }

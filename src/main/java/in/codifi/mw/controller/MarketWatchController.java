@@ -61,11 +61,12 @@ public class MarketWatchController implements IMarketWatchController {
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
-			Log.error("Client info is null");
-			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		}
-		return iMarketWatchService.createMW(info.getUcc());
+		} 
+//		else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+//			Log.error("Client info is null");
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
+		return iMarketWatchService.createMW(info.getUserId());
 //		return iMarketWatchService.createMW("Test109");
 
 	}
@@ -85,12 +86,13 @@ public class MarketWatchController implements IMarketWatchController {
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
-			Log.error("Client info is null");
-			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		}
-		
-		return iMarketWatchService.renameMarketWatch(pDto, info.getUcc());
+		} 
+//		else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+//			Log.error("Client info is null");
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
+
+		return iMarketWatchService.renameMarketWatch(pDto, info.getUserId());
 
 	}
 
@@ -104,11 +106,12 @@ public class MarketWatchController implements IMarketWatchController {
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
-			Log.error("Client info is null");
-			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
-		return iMarketWatchService.sortMwScrips(pDto, info.getUcc());
+//		else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+//			Log.error("Client info is null");
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
+		return iMarketWatchService.sortMwScrips(pDto, info.getUserId());
 
 //		boolean isValid = validateRequestService.isValidUser(pDto);
 //		if (isValid) {
@@ -132,14 +135,16 @@ public class MarketWatchController implements IMarketWatchController {
 		 * Check the client info, get the user with the client info
 		 */
 		ClinetInfoModel info = appUtil.getClientInfo();
+		Log.info("------------>user " + info.getUserId());
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
-			Log.error("Client info is null");
-			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 		}
-		return iMarketWatchService.addscrip(pDto, info.getUcc());
+//			else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+//			Log.error("Client info is null");
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
+		return iMarketWatchService.addscrip(pDto, info.getUserId());
 
 //		boolean isValid = validateRequestService.isValidUser(pDto);
 //		if (isValid) {
@@ -166,11 +171,12 @@ public class MarketWatchController implements IMarketWatchController {
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
-			Log.error("Client info is null");
-			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		}
-		return iMarketWatchService.deletescrip(pDto, info.getUcc());
+		} 
+//		else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+//			Log.error("Client info is null");
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
+		return iMarketWatchService.deletescrip(pDto, info.getUserId());
 
 //		boolean isValid = validateRequestService.isValidUser(pDto);
 //		if (isValid) {
@@ -196,11 +202,12 @@ public class MarketWatchController implements IMarketWatchController {
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		} else if (StringUtil.isNullOrEmpty(info.getUcc())) {
-			Log.error("Client info is null");
-			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
-		}
-		return iMarketWatchService.getAllMwScrips(info.getUcc());
+		} 
+//		else if (StringUtil.isNullOrEmpty(info.getUcc())) {
+//			Log.error("Client info is null");
+//			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
+//		}
+		return iMarketWatchService.getAllMwScrips(info.getUserId());
 
 //		System.out.println("getAllMwScrips - controller");
 //		boolean isValid = validateRequestService.isValidUser(pDto);
@@ -263,8 +270,7 @@ public class MarketWatchController implements IMarketWatchController {
 		}
 		return iMarketWatchService.getSecurityInfo(model, info);
 	}
-	
-	
+
 	/***
 	 * 
 	 */
@@ -278,10 +284,9 @@ public class MarketWatchController implements IMarketWatchController {
 			Log.error("Client info is null");
 			return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
 		}
-		return iMarketWatchService.getContractInfo(reqModel,info);
+		return iMarketWatchService.getContractInfo(reqModel, info);
 	}
-	
-	
+
 	/**
 	 * 
 	 * @param pDto
@@ -296,7 +301,7 @@ public class MarketWatchController implements IMarketWatchController {
 //		} else {
 //			return prepareResponse.prepareFailedResponse(AppConstants.INVALID_PARAMETER);
 //		}
-		
+
 		ClinetInfoModel info = appUtil.getClientInfo();
 		if (info == null || StringUtil.isNullOrEmpty(info.getUserId())) {
 			Log.error("Client info is null");

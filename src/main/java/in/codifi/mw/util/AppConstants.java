@@ -132,5 +132,7 @@ public class AppConstants {
 	public static final String RECENTLY_SEARCH_SORTING = "Recently search Scrips should not be sorting order";
 	public static final String UNDERLYING_LOAD_SUCESS = "Underlying loaded sucessfully";
 	public static final String UNDERLYING_LOAD_FAILED = "Failed to load Underlying";
+	public static final String CONTRACT_LOAD_FAILED = "Contract Master Loading Failed";
+	public static final String CONTRACT_LOAD_SUCESS = "Contract Master Loading Success";
 	
 }
