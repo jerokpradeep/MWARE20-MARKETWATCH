@@ -54,13 +54,13 @@ public class ScripsService implements ScripsServiceSpecs {
 
 	@Inject
 	CommonUtils commonUtils;
-	
-	@Inject	
+
+	@Inject
 	ApplicationProperties properties;
 
 	@Inject
 	RecentlyViewedRepository recentlyViewedRepository;
-	
+
 	/**
 	 *
 	 */
@@ -68,20 +68,30 @@ public class ScripsService implements ScripsServiceSpecs {
 	@Override
 	public RestResponse<ResponseModel> getScrips(SearchScripReqModel reqModel) {
 		List<ScripSearchResp> responses = new ArrayList<>();
+		SearchModel json = new SearchModel();
+		json.setCurrentPage(0);
+		json.setCurrentPage(0);
+		json.setSearchResult(Collections.emptyList());
 		try {
+
 			int tempPageSize = (StringUtil.isNullOrEmpty(reqModel.getPageSize().trim())
-					|| reqModel.getPageSize().trim().equalsIgnoreCase("0")) ? 50 : Integer.parseInt(reqModel.getPageSize().trim());
+					|| reqModel.getPageSize().trim().equalsIgnoreCase("0")) ? 500
+							: Integer.parseInt(reqModel.getPageSize().trim());
 			int currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage().trim())
 					|| reqModel.getCurrentPage().trim().equalsIgnoreCase("0") ? 1
 							: Integer.parseInt(reqModel.getCurrentPage().trim());
 			if (StringUtil.isNotNullOrEmptyAfterTrim(reqModel.getPageSize().trim())) {
 				if (!commonUtils.isPositiveWholeNumber(reqModel.getPageSize().trim())) {
-					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW125,
-							AppConstants.INVALID_PAGE_SIZE);
+//					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW125,
+//							AppConstants.INVALID_PAGE_SIZE);
+					return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW125,
+							AppConstants.INVALID_PAGE_SIZE, json);
 				} else {
 					if (!commonUtils.isBetweenOneAndhundred(Integer.parseInt(reqModel.getPageSize().trim()))) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW126,
-								AppConstants.PAGE_SIZE_100);
+//						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW126,
+//								AppConstants.PAGE_SIZE_100);
+						return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW126,
+								AppConstants.PAGE_SIZE_100, json);
 					}
 					tempPageSize = Integer.parseInt(reqModel.getPageSize().trim());
 				}
@@ -90,12 +100,16 @@ public class ScripsService implements ScripsServiceSpecs {
 			if (StringUtil.isNotNullOrEmptyAfterTrim(reqModel.getCurrentPage().trim())) {
 
 				if (!commonUtils.isPositiveWholeNumber(reqModel.getCurrentPage().trim())) {
-					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW127,
-							AppConstants.INVALID_CURRENT_PAGE);
+//					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW127,
+//							AppConstants.INVALID_CURRENT_PAGE);
+					return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW127,
+							AppConstants.INVALID_CURRENT_PAGE, json);
 				} else {
 					if (!commonUtils.isBetweenOneAndfifty(Integer.parseInt(reqModel.getCurrentPage().trim()))) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW128,
-								AppConstants.CURRENT_PAGE_50);
+//						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW128,
+//								AppConstants.CURRENT_PAGE_50);
+						return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW128,
+								AppConstants.CURRENT_PAGE_50, json);
 					}
 				}
 
@@ -162,7 +176,9 @@ public class ScripsService implements ScripsServiceSpecs {
 			e.printStackTrace();
 			Log.error(e.getMessage());
 		}
-		return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
+//		return prepareResponse.prepareFailedResponse(AppConstants.FAILED_STATUS);
+		return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW130,
+				ErrorMessageConstants.NOT_FOUND, json);
 	}
 
 	private List<ScripSearchResp> getSearchDetailsFromCache(SearchScripReqModel reqModel) {
@@ -210,10 +226,10 @@ public class ScripsService implements ScripsServiceSpecs {
 					// Keep filename as is if no match is found
 					break;
 				}
-			}else {
+			} else {
 				adjustedExchange = exch.toUpperCase().trim();
 			}
-			
+
 			// Add the adjusted filename to the ArrayList
 			adjustedExchangeList.add(adjustedExchange);
 		}
@@ -231,9 +247,11 @@ public class ScripsService implements ScripsServiceSpecs {
 				responses = scripSearchRepo.getScrips(reqModel);
 				if (responses != null && responses.size() > 0) {
 					if (HazelcastConfig.getInstance().getIndexDetails()
-							.get(reqModel.getSearchText().trim().toUpperCase()) != null) {
+							.get(reqModel.getSearchText().trim().toUpperCase() + "_" + reqModel.getPageSize() + "_"
+									+ reqModel.getCurrentPage()) != null) {
 						ScripSearchResp result = HazelcastConfig.getInstance().getIndexDetails()
-								.get(reqModel.getSearchText().trim().toUpperCase());
+								.get(reqModel.getSearchText().trim().toUpperCase() + "_" + reqModel.getPageSize() + "_"
+										+ reqModel.getCurrentPage());
 						responses.set(0, result);
 						if (responses.size() > 24) {
 							responses.remove(25);

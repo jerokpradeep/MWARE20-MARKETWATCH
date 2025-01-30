@@ -28,7 +28,7 @@ public class CommonUtils {
 	public boolean isValidExch(String input) {
 		// Use a regex to check if the input matches any of the valid values
 		if (properties.isExchfull()) {
-			return input.toUpperCase().matches("BSECURR|BSEFO|BSEEQ|NSECURR|MCXCOMM|NSEFO|NSEEQ|NSECOMM");
+			return input.toUpperCase().matches("BSECURR|BSEFO|BSEEQ|NSECURR|MCXCOMM|NSEFO|NSEEQ|NSECOMM|NCDEXCOMM");
 		} else {
 			return input.toUpperCase().matches("NFO|NCO|NSE|CDS|NCDEX|MCX|BFO|BCD|BCO|BSE");
 
@@ -91,7 +91,7 @@ public class CommonUtils {
 			} else if (exchSeg.equalsIgnoreCase("cde_fo")) {
 				exch = "CDS";
 			} else if (exchSeg.equalsIgnoreCase("ncx_fo")) {
-				exch = "NCDEX";
+				exch = "NCDEXCOMM";
 			} else if (exchSeg.equalsIgnoreCase("mcx_fo")) {
 				exch = "MCX";
 			} else if (exchSeg.equalsIgnoreCase("bse_fo")) {
@@ -249,7 +249,7 @@ public class CommonUtils {
 	}
 
 	public boolean isBetweenOneAndhundred(int mwId) {
-		return mwId >= 1 && mwId <= 100;
+		return mwId >= 1 && mwId <= 500;
 	}
 
 	public boolean isBetweenOneAndfifty(int mwId) {

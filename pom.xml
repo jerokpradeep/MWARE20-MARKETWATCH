@@ -47,10 +47,8 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-spring-data-jpa</artifactId>
 		</dependency>
-		<!--dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-jdbc-mariadb</artifactId>
-    </dependency -->
+		<!--dependency> <groupId>io.quarkus</groupId> <artifactId>quarkus-jdbc-mariadb</artifactId> 
+			</dependency -->
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-jdbc-mysql</artifactId>
@@ -148,9 +146,14 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
- 		   <groupId>io.quarkus</groupId>
-		    <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
-		</dependency>	
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.55</version>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

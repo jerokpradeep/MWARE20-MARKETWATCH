@@ -32,5 +32,6 @@ public class InitialLoader extends HttpServlet {
 //		cacheservice.loadPreDefinedMWData();
 		System.out.println("Get Mw List UserId clear");
 		contractService.loadUnderlyingScrips();
+		contractService.loadPromptData();
 	}
 }

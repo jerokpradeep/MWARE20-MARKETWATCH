@@ -248,7 +248,7 @@ public class ScripSearchEntityManager {
 //		}
 //		return respone;
 //	}
-	
+
 	public List<ScripSearchResp> getScrips(SearchScripReqModel reqModel) {
 		List<ScripSearchResp> respone = new ArrayList<>();
 		List<String> adjustedExchangeList = new ArrayList<>();
@@ -256,7 +256,7 @@ public class ScripSearchEntityManager {
 
 			String currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage().trim()) ? "1"
 					: reqModel.getCurrentPage().trim();
-			String pageSize = StringUtil.isNullOrEmpty(reqModel.getPageSize().trim()) ? "50"
+			String pageSize = StringUtil.isNullOrEmpty(reqModel.getPageSize().trim()) ? "500"
 					: reqModel.getPageSize().trim();
 			int offset = (Integer.parseInt(currentPage) - 1) * Integer.parseInt(pageSize);
 			String symbol = reqModel.getSearchText().trim();
@@ -328,9 +328,9 @@ public class ScripSearchEntityManager {
 			}
 
 			String sqlQuery1 = "SELECT exch, exchange_segment, group_name, symbol, token, instrument_type, formatted_ins_name,week_tag,company_name,expiry_date,option_type,isin FROM tbl_global_contract_master_details ";
-			String sqlQuery2 = "CASE when symbol= 'NIFTY 50' THEN 1 WHEN trading_symbol LIKE 'BANK NIFTY INDEX' THEN 2 WHEN (formatted_ins_name LIKE 'NIFTY%' OR company_name LIKE 'NIFTY%' OR symbol= 'NIFTY%' ) and exchange_segment ='nse_idx' then 3 WHEN (formatted_ins_name LIKE 'BANK NIFTY%' OR company_name LIKE 'BANK NIFTY%' OR symbol= 'BANK NIFTY%' )  then 4 ELSE 5 END ,";
-			String sqlQuery3 = " sort_order_1, sort_order_2, expiry_date, symbol,formatted_ins_name limit "
-					+ pageSize + " OFFSET " + offset + "";
+			String sqlQuery2 = "CASE when symbol= 'NIFTY 50' THEN 1 WHEN trading_symbol LIKE 'BANK NIFTY INDEX' THEN 2 WHEN (formatted_ins_name LIKE 'NIFTY%' OR company_name LIKE 'NIFTY%' OR symbol= 'NIFTY%' ) and exchange_segment ='nse_idx' then 3 WHEN (formatted_ins_name LIKE 'BANK NIFTY%' OR company_name LIKE 'BANK NIFTY%' OR symbol= 'BANK NIFTY%' )  then 4 WHEN(formatted_ins_name LIKE 'SENSEXETF%' OR company_name LIKE 'SENSEXETF%' OR symbol = 'SENSEXETF%') THEN 5 ELSE 6 END ,";
+			String sqlQuery3 = " sort_order_1, sort_order_2, expiry_date, symbol,formatted_ins_name limit " + pageSize
+					+ " OFFSET " + offset + "";
 
 			/**
 			 * To Add no of question mark in where condition base of exchange. If exchange
@@ -364,7 +364,7 @@ public class ScripSearchEntityManager {
 //								+ "%')";
 //					}
 //				}
-				
+
 				if (keys.length == 1 && keys[0] != null && keys[0].trim().length() < 4) {
 					tempWhereClause = tempWhereClause + " and (symbol like '%" + keys[0] + "%'  or company_name like '%"
 							+ keys[0] + "%' )";
@@ -376,11 +376,14 @@ public class ScripSearchEntityManager {
 								+ "%')";
 					}
 				}
-				
-				caseCondition = caseCondition + tempWhereClause;
+
+				String tempQuery = "AND (" + "'" + keys[0] + "'"
+						+ " != 'ACC' OR ( symbol != 'CREDITACC' AND symbol != 'GOLDENTOBC'))";
+
+				caseCondition = caseCondition + tempWhereClause + tempQuery;
 			}
 
-			stringQuery = sqlQuery1 + whereClause + caseCondition + " ORDER BY  "  + sqlQuery2 + sqlQuery3;
+			stringQuery = sqlQuery1 + whereClause + caseCondition + " ORDER BY  " + sqlQuery2 + sqlQuery3;
 
 			System.out.println("<<<<Query>>>>>" + stringQuery);
 
