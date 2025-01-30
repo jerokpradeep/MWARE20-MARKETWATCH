@@ -3,6 +3,8 @@
  */
 package in.codifi.mw.controller;
 
+import java.util.Collections;
+
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 
@@ -11,6 +13,7 @@ import org.jboss.resteasy.reactive.RestResponse;
 import in.codifi.mw.controller.spec.ScripsControllerSpecs;
 import in.codifi.mw.model.ClinetInfoModel;
 import in.codifi.mw.model.ResponseModel;
+import in.codifi.mw.model.SearchModel;
 import in.codifi.mw.model.SearchScripReqModel;
 import in.codifi.mw.service.spec.ScripsServiceSpecs;
 import in.codifi.mw.util.AppConstants;
@@ -42,26 +45,39 @@ public class ScripsController implements ScripsControllerSpecs {
 	@Override
 	public RestResponse<ResponseModel> getScrips(SearchScripReqModel reqModel) {
 
+		// Create the main JSONObject
+		SearchModel obj = new SearchModel();
+		obj.setCurrentPage(0);
+		obj.setCurrentPage(0);
+		obj.setSearchResult(Collections.emptyList());
+
 		if (StringUtil.isNullOrEmpty(reqModel.getSearchText())) {
-			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW120,
-					ErrorMessageConstants.INVALID_SEARCHTEXT);
+//			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW120,
+//					ErrorMessageConstants.INVALID_SEARCHTEXT);
+			return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW120,
+					ErrorMessageConstants.INVALID_SEARCHTEXT, obj);
 		}
 		if (reqModel.getExchange() == null || reqModel.getExchange().length == 0) {
-			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-					ErrorMessageConstants.INVALID_EXCH);
+//			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+//					ErrorMessageConstants.INVALID_EXCH);
+			return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW003,
+					ErrorMessageConstants.INVALID_EXCH, obj);
 		}
 		if (!commonUtils.checkExchangeIsValid(reqModel.getExchange())) {
-			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-					ErrorMessageConstants.INVALID_EXCHANGE);
+//			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+//					ErrorMessageConstants.INVALID_EXCHANGE);
+			return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW003,
+					ErrorMessageConstants.INVALID_EXCHANGE, obj);
 		}
 		if (reqModel.getSearchText().trim().length() >= 2) {
 			return scripsService.getScrips(reqModel);
 		}
-
-		return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW112,
-				ErrorMessageConstants.ERROR_MIN_CHAR);
+//		return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW112,
+//				ErrorMessageConstants.ERROR_MIN_CHAR);
+		return prepareResponse.prepareMWFailedwithEmtyResult(ErrorCodeConstants.ECMW112,
+				ErrorMessageConstants.ERROR_MIN_CHAR, obj);
 	}
-	
+
 	@Override
 	public RestResponse<ResponseModel> getRecentlyViewed() {
 		ClinetInfoModel info = appUtil.getClientInfo();

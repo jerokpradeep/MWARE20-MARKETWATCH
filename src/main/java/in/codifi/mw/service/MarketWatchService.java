@@ -305,8 +305,8 @@ public class MarketWatchService implements IMarketWatchService {
 			if (pDto != null) {
 				if (pDto.getMwId() != 301) {
 					if (pDto != null && pDto.getMwId() == 0) {
-						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW114,
-								ErrorMessageConstants.INVALID_MWID);
+						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW104,
+								AppConstants.INVALID_PARAMETER);
 					}
 					if (StringUtil.isNullOrEmpty(pDto.getMwName().trim())) {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW115,
@@ -447,7 +447,7 @@ public class MarketWatchService implements IMarketWatchService {
 						// Check if exchange is null or invalid
 						if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
 							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-									ErrorMessageConstants.INVALID_EXCHANGE);
+									ErrorMessageConstants.INVALID_EXCHANGE_INFO);
 						}
 					}
 
@@ -603,8 +603,8 @@ public class MarketWatchService implements IMarketWatchService {
 			if (StringUtil.isListNotNullOrEmpty(parmDto.getScripData())) {
 
 				if (!commonUtils.isBetweenOneAndFive(parmDto.getMwId())) {
-					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW101,
-							AppConstants.INVALID_MW_ID);
+					return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW104,
+							AppConstants.INVALID_PARAMETER);
 				}
 
 				for (int i = 0; i < parmDto.getScripData().size(); i++) {
@@ -620,7 +620,7 @@ public class MarketWatchService implements IMarketWatchService {
 					// Check if exchange is null or invalid
 					if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-								ErrorMessageConstants.INVALID_EXCHANGE);
+								ErrorMessageConstants.INVALID_EXCHANGE_INFO);
 					}
 				}
 
@@ -1025,7 +1025,7 @@ public class MarketWatchService implements IMarketWatchService {
 						// Check if exchange is null or invalid
 						if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
 							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-									ErrorMessageConstants.INVALID_EXCHANGE);
+									ErrorMessageConstants.INVALID_EXCHANGE_INFO);
 						}
 					}
 
@@ -1277,7 +1277,8 @@ public class MarketWatchService implements IMarketWatchService {
 		JSONObject json = new JSONObject();
 		List<IndexModel> response = new ArrayList<>();
 
-		if (MwCacheController.getGetIndexData().get(AppConstants.GET_INDEX) != null) {
+		if (MwCacheController.getGetIndexData().get(AppConstants.GET_INDEX) != null
+				&& !MwCacheController.getGetIndexData().get(AppConstants.GET_INDEX).isEmpty()) {
 			response = MwCacheController.getGetIndexData().get(AppConstants.GET_INDEX);
 			System.out.println("Cache Data");
 			json.put("status", "Ok");
@@ -1392,7 +1393,26 @@ public class MarketWatchService implements IMarketWatchService {
 				infoResult.setExpiry(masterData.getExpiry() == null ? "" : masterData.getExpiry());
 				infoResult.setQtyLimit("");
 				infoResult.setSliceEnable("");
-				infoResult.setSurveillance("");
+//				infoResult.setSurveillance("");
+
+				/** To add prompt message **/
+				if (model != null
+						&& (codifiExchange.equalsIgnoreCase("NSE") || codifiExchange.equalsIgnoreCase("BSE"))) {
+					System.out.println("INFO" + masterData.getIsin() + "_" + codifiExchange);
+					if (HazelcastConfig.getInstance().getPromptMasterv1()
+							.get(masterData.getIsin() + "_" + codifiExchange) != null
+							&& HazelcastConfig.getInstance().getPromptMasterv1()
+									.get(masterData.getIsin() + "_" + codifiExchange).size() > 0) {
+						List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMasterv1()
+								.get(masterData.getIsin() + "_" + codifiExchange);
+						if (prompt != null && prompt.size() > 0) {
+							infoResult.setSurveillance(true);
+						} else {
+							infoResult.setSurveillance(false);
+						}
+					}
+				}
+
 				infoResult.setScripIndex(false);
 //				infoResult.setFnOAvailable(masterData.getOptionType() == "1" ? true : false);
 				if (HazelCacheController.getInstance().getUnderlyingScript().get(masterData.getSymbol()) != null) {
@@ -1403,7 +1423,7 @@ public class MarketWatchService implements IMarketWatchService {
 				infoResult.setCompanyName(masterData.getCompanyName());
 
 				SpotData spotDataResult = new SpotData();
-				spotDataResult.setLtp(1);
+				spotDataResult.setLtp(Double.parseDouble(masterData.getPdc()));
 				spotDataResult.setToken(masterData.getToken());
 				spotDataResult.setTradingSymbol(masterData.getTradingSymbol());
 				spotDataResult.setNsebseToken(masterData.getAlterToken());
@@ -1636,18 +1656,18 @@ public class MarketWatchService implements IMarketWatchService {
 //				}
 //			}
 //		}else {
-			/** To add prompt message **/
-			if (model != null && (model.getExch().equalsIgnoreCase("NSE") || model.getExch().equalsIgnoreCase("BSE"))) {
-				if (HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch()) != null
-						&& HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch())
-								.size() > 0) {
-					List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMaster()
-							.get(model.getIsin() + "_" + model.getExch());
-					if (prompt != null && prompt.size() > 0) {
-						details.setPrompt(prompt);
-					}
+		/** To add prompt message **/
+		if (model != null && (model.getExch().equalsIgnoreCase("NSE") || model.getExch().equalsIgnoreCase("BSE"))) {
+			if (HazelcastConfig.getInstance().getPromptMasterv1().get(model.getIsin() + "_" + model.getExch()) != null
+					&& HazelcastConfig.getInstance().getPromptMasterv1().get(model.getIsin() + "_" + model.getExch())
+							.size() > 0) {
+				List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMasterv1()
+						.get(model.getIsin() + "_" + model.getExch());
+				if (prompt != null && prompt.size() > 0) {
+					details.setPrompt(prompt);
 				}
 			}
+		}
 //		}
 
 		if (properties.isExchfull()) {

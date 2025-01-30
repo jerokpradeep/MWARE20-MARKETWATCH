@@ -35,8 +35,10 @@ public class SecurityInfoRespModel {
 	private String qtyLimit;
 	@JsonProperty("sliceEnable")
 	private String sliceEnable;
+//	@JsonProperty("surveillance")
+//	private String surveillance;
 	@JsonProperty("surveillance")
-	private String surveillance;
+	private boolean surveillance;
 	@JsonProperty("scripIndex")
 	private boolean scripIndex;
 	@JsonProperty("isFnOAvailable")
