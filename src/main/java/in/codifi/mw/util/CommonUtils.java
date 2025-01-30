@@ -108,7 +108,7 @@ public class CommonUtils {
 				exch = "BSE";
 			} else if (exchSeg.equalsIgnoreCase("mcx_idx")) {
 				exch = "MCX";
-			}else if (exchSeg.equalsIgnoreCase("ncdex")) {
+			} else if (exchSeg.equalsIgnoreCase("ncdex")) {
 				exch = "NCDEX";
 			}
 		} catch (Exception e) {
@@ -178,7 +178,7 @@ public class CommonUtils {
 				exch = "BSECOMM";
 			} else if (exchSeg.equalsIgnoreCase("BSE")) {
 				exch = "BSEEQ";
-			}else if (exchSeg.equalsIgnoreCase("NCDEXCOMM")) {
+			} else if (exchSeg.equalsIgnoreCase("NCDEXCOMM")) {
 				exch = "NCDEXCOMM";
 			}
 		} catch (Exception e) {
@@ -280,6 +280,29 @@ public class CommonUtils {
 		hardcodedExchanges.add("MCXCOMM");
 		hardcodedExchanges.add("NSECOMM");
 		hardcodedExchanges.add("NCDEXCOMM");
+		hardcodedExchanges.add("ALL");
+
+		// Check if any of the reqModel values are in the hardcodedExchanges list
+		for (String exchange : reqModel) {
+			if (!hardcodedExchanges.contains(exchange.trim().toUpperCase())) {
+				return false; // If any value is not found in the list, return false
+			}
+		}
+		return true; // If all values are found in the list, return true
+	}
+
+	public boolean checkExchangeIsValidCodifi(String[] reqModel) {
+		// Hardcoded exchange values as List<String>
+		List<String> hardcodedExchanges = new ArrayList<>();
+		hardcodedExchanges.add("NSE");
+		hardcodedExchanges.add("NFO");
+		hardcodedExchanges.add("BSE");
+		hardcodedExchanges.add("BFO");
+		hardcodedExchanges.add("CDS");
+		hardcodedExchanges.add("BCD");
+		hardcodedExchanges.add("MCX");
+		hardcodedExchanges.add("NCO");
+		hardcodedExchanges.add("NCDEX");
 		hardcodedExchanges.add("ALL");
 
 		// Check if any of the reqModel values are in the hardcodedExchanges list

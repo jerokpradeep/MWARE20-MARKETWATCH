@@ -447,7 +447,7 @@ public class MarketWatchService implements IMarketWatchService {
 						// Check if exchange is null or invalid
 						if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
 							return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-									ErrorMessageConstants.INVALID_EXCHANGE);
+									ErrorMessageConstants.INVALID_EXCHANGE_SEGMENT);
 						}
 					}
 
@@ -620,7 +620,7 @@ public class MarketWatchService implements IMarketWatchService {
 					// Check if exchange is null or invalid
 					if (!commonUtils.isValidExch(exchange.toUpperCase().trim())) {
 						return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-								ErrorMessageConstants.INVALID_EXCHANGE);
+								ErrorMessageConstants.INVALID_EXCHANGE_SEGMENT);
 					}
 				}
 
@@ -798,6 +798,7 @@ public class MarketWatchService implements IMarketWatchService {
 					fResult.setTradingSymbol(masterData.getTradingSymbol());
 					fResult.setFormattedInsName(masterData.getFormattedInsName());
 					fResult.setToken(masterData.getToken());
+					fResult.setStrike_price(masterData.getStrikePrice());;
 
 					if (properties.isExchfull()) {
 						String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
@@ -1636,18 +1637,18 @@ public class MarketWatchService implements IMarketWatchService {
 //				}
 //			}
 //		}else {
-			/** To add prompt message **/
-			if (model != null && (model.getExch().equalsIgnoreCase("NSE") || model.getExch().equalsIgnoreCase("BSE"))) {
-				if (HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch()) != null
-						&& HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch())
-								.size() > 0) {
-					List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMaster()
-							.get(model.getIsin() + "_" + model.getExch());
-					if (prompt != null && prompt.size() > 0) {
-						details.setPrompt(prompt);
-					}
+		/** To add prompt message **/
+		if (model != null && (model.getExch().equalsIgnoreCase("NSE") || model.getExch().equalsIgnoreCase("BSE"))) {
+			if (HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch()) != null
+					&& HazelcastConfig.getInstance().getPromptMaster().get(model.getIsin() + "_" + model.getExch())
+							.size() > 0) {
+				List<PromptModel> prompt = HazelcastConfig.getInstance().getPromptMaster()
+						.get(model.getIsin() + "_" + model.getExch());
+				if (prompt != null && prompt.size() > 0) {
+					details.setPrompt(prompt);
 				}
 			}
+		}
 //		}
 
 		if (properties.isExchfull()) {

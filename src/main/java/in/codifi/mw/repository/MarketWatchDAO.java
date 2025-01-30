@@ -39,7 +39,6 @@ public class MarketWatchDAO {
 	@Inject
 	DataSource dataSource;
 
-	
 	@Inject
 	DataSource entityManager;
 
@@ -494,7 +493,7 @@ public class MarketWatchDAO {
 			pStmt = conn.prepareStatement("INSERT INTO tbl_market_watch_scrips (user_id,mw_id,token,alter_token,exch,"
 					+ "exch_seg,trading_symbol,formatted_ins_name,group_name,instrument_type,expiry_date,lot_size,"
 					+ "option_type,pdc,sorting_order,strike_price,symbol,tick_size,week_tag) "
-					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 			for (MarketWatchScripDetailsDTO dto : mwScripsDto) {
 				int paramPos = 1;
 				pStmt.setString(paramPos++, dto.getUserId());
@@ -609,8 +608,14 @@ public class MarketWatchDAO {
 			pStmt.setInt(paramPos++, pDto.getMwId());
 			pStmt.setString(paramPos++, userId);
 			pStmt.setString(paramPos++, pDto.getScripData().get(0).getToken().trim());
-			pStmt.setString(paramPos++,
-					commonUtils.getExchangeNameContract(pDto.getScripData().get(0).getExchange().trim()));
+			if (properties.isExchfull()) {
+				pStmt.setString(paramPos++,
+						commonUtils.getExchangeNameContract(pDto.getScripData().get(0).getExchange().trim()));
+			} else {
+				pStmt.setString(paramPos++, pDto.getScripData().get(0).getExchange().trim());
+			}
+			System.out.println("..........." + pStmt.toString());
+
 			rSet = pStmt.executeQuery();
 			if (rSet != null) {
 				while (rSet.next()) {

@@ -59,6 +59,8 @@ public class MarketWatchScripDetailsDTO implements Serializable {
 	private int sortingOrder;
 
 	private String alterToken;
-	
+
 	private String weekTag;
+
+	private String strike_price;
 }

@@ -34,6 +34,7 @@ public class CacheMwDetailsModel implements Serializable {
 	public String symbol;
 	public String formattedInsName;
 	private String weekTag;
+	public String strike_price;
 	// New fields
 	public badgeModel badge;
 	public List<String> screeners;

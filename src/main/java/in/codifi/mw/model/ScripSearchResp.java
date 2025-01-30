@@ -44,5 +44,7 @@ public class ScripSearchResp implements Serializable {
 	private String isin = "";
 	@JsonProperty(value = "optionType")
 	private String optionType = "";
+	@JsonProperty(value = "strike_price")
+	private String strike_price = "";
 
 }

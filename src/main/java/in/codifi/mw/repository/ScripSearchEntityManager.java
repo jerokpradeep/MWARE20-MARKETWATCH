@@ -31,7 +31,6 @@ import io.quarkus.logging.Log;
  */
 @ApplicationScoped
 public class ScripSearchEntityManager {
-	@Named("mw")
 	@Inject
 	EntityManager entityManager;
 
@@ -248,7 +247,7 @@ public class ScripSearchEntityManager {
 //		}
 //		return respone;
 //	}
-	
+
 	public List<ScripSearchResp> getScrips(SearchScripReqModel reqModel) {
 		List<ScripSearchResp> respone = new ArrayList<>();
 		List<String> adjustedExchangeList = new ArrayList<>();
@@ -327,10 +326,10 @@ public class ScripSearchEntityManager {
 				questionCount = ques.substring(0, ques.length() - 1);
 			}
 
-			String sqlQuery1 = "SELECT exch, exchange_segment, group_name, symbol, token, instrument_type, formatted_ins_name,week_tag,company_name,expiry_date,option_type,isin FROM tbl_global_contract_master_details ";
+			String sqlQuery1 = "SELECT exch, exchange_segment, group_name, symbol, token, instrument_type, formatted_ins_name,week_tag,company_name,expiry_date,option_type,isin,strike_price FROM tbl_global_contract_master_details ";
 			String sqlQuery2 = "CASE when symbol= 'NIFTY 50' THEN 1 WHEN trading_symbol LIKE 'BANK NIFTY INDEX' THEN 2 WHEN (formatted_ins_name LIKE 'NIFTY%' OR company_name LIKE 'NIFTY%' OR symbol= 'NIFTY%' ) and exchange_segment ='nse_idx' then 3 WHEN (formatted_ins_name LIKE 'BANK NIFTY%' OR company_name LIKE 'BANK NIFTY%' OR symbol= 'BANK NIFTY%' )  then 4 ELSE 5 END ,";
-			String sqlQuery3 = " sort_order_1, sort_order_2, expiry_date, symbol,formatted_ins_name limit "
-					+ pageSize + " OFFSET " + offset + "";
+			String sqlQuery3 = " sort_order_1, sort_order_2, expiry_date, symbol,formatted_ins_name limit " + pageSize
+					+ " OFFSET " + offset + "";
 
 			/**
 			 * To Add no of question mark in where condition base of exchange. If exchange
@@ -364,7 +363,7 @@ public class ScripSearchEntityManager {
 //								+ "%')";
 //					}
 //				}
-				
+
 				if (keys.length == 1 && keys[0] != null && keys[0].trim().length() < 4) {
 					tempWhereClause = tempWhereClause + " and (symbol like '%" + keys[0] + "%'  or company_name like '%"
 							+ keys[0] + "%' )";
@@ -376,11 +375,11 @@ public class ScripSearchEntityManager {
 								+ "%')";
 					}
 				}
-				
+
 				caseCondition = caseCondition + tempWhereClause;
 			}
 
-			stringQuery = sqlQuery1 + whereClause + caseCondition + " ORDER BY  "  + sqlQuery2 + sqlQuery3;
+			stringQuery = sqlQuery1 + whereClause + caseCondition + " ORDER BY  " + sqlQuery2 + sqlQuery3;
 
 			System.out.println("<<<<Query>>>>>" + stringQuery);
 
@@ -406,6 +405,7 @@ public class ScripSearchEntityManager {
 				String formattedInsName = String.valueOf(object[6]);
 				String weekTag = object[7] == null ? "" : String.valueOf(object[7]);
 				String companyName = object[8] == null ? "" : String.valueOf(object[8]);
+				String strike_price = object[9] == "0" || object[9] == null ? "" : String.valueOf(object[9]);
 				Date expiry = null;
 				if (object[9] != null) {
 					expiry = (Date) object[9];
@@ -439,7 +439,7 @@ public class ScripSearchEntityManager {
 
 				model.setSeries(groupName);
 				model.setIsin(isin);
-
+				model.setStrike_price(strike_price);
 				if (exchange.equalsIgnoreCase("NSE")) {
 					model.setSymbol(resSymbol + "-" + groupName);
 				} else {

@@ -8,6 +8,7 @@ import javax.ws.rs.Path;
 
 import org.jboss.resteasy.reactive.RestResponse;
 
+import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.controller.spec.ScripsControllerSpecs;
 import in.codifi.mw.model.ClinetInfoModel;
 import in.codifi.mw.model.ResponseModel;
@@ -38,6 +39,9 @@ public class ScripsController implements ScripsControllerSpecs {
 	CommonUtils commonUtils;
 	@Inject
 	AppUtil appUtil;
+	
+	@Inject
+	ApplicationProperties properties;
 
 	@Override
 	public RestResponse<ResponseModel> getScrips(SearchScripReqModel reqModel) {
@@ -50,9 +54,16 @@ public class ScripsController implements ScripsControllerSpecs {
 			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
 					ErrorMessageConstants.INVALID_EXCH);
 		}
-		if (!commonUtils.checkExchangeIsValid(reqModel.getExchange())) {
-			return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
-					ErrorMessageConstants.INVALID_EXCHANGE);
+		if (properties.isExchfull()) {
+			if (!commonUtils.checkExchangeIsValid(reqModel.getExchange())) {
+				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+						ErrorMessageConstants.INVALID_EXCHANGE);
+			}
+		}else {
+			if (!commonUtils.checkExchangeIsValidCodifi(reqModel.getExchange())) {
+				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
+						ErrorMessageConstants.INVALID_EXCHANGE_SEGMENT);
+			}
 		}
 		if (reqModel.getSearchText().trim().length() >= 2) {
 			return scripsService.getScrips(reqModel);
