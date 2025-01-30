@@ -127,7 +127,7 @@ public class AppConstants {
 	public static final String POSITION_MW_NAME = "Positions";
 	public static final String RECENTLY_SEARCHED_MW_NAME = "Recently Viewed";
 	
-	public static final String RECENTLY_SEARCH_DELETED = "Recently search Scrips should not be deleted.";
+	public static final String RECENTLY_SEARCH_DELETED = "Recently viewed Scrips should not be deleted.";
 	public static final String RECENTLY_SEARCH_RENAME = "Recently search Scrips should not be rename.";
 	public static final String RECENTLY_SEARCH_SORTING = "Recently search Scrips should not be sorting order";
 	public static final String UNDERLYING_LOAD_SUCESS = "Underlying loaded sucessfully";
@@ -135,4 +135,15 @@ public class AppConstants {
 	public static final String CONTRACT_LOAD_FAILED = "Contract Master Loading Failed";
 	public static final String CONTRACT_LOAD_SUCESS = "Contract Master Loading Success";
 	
+	public static final String CONTRACT_LOAD_SUCESS = "Contract loaded sucessfully";
+	public static final String CONTRACT_LOAD_FAILED = "Failed to load contract";
+	public static final String CONTRACT_FILE_NMAE = "tbl_global_contract_master_details_";
+	public static final String SQL = ".sql";
+	public static final String STRICTHOSTKEYCHECKING = "StrictHostKeyChecking";
+	public static final String NO = "no";
+	public static final String SFTP = "sftp";
+	public static final String ASM_GSM_LOAD_SUCESS = "ASM_GSM loaded sucessfully";
+	public static final String ASM_GSM_LOAD_FAILED = "Failed to load ASM_GSM file";
+	public static final String ASMGSM_FILE_NMAE = "tbl_asm_gsm_";
+
 }

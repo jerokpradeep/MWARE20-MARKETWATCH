@@ -73,5 +73,5 @@ public class ErrorCodeConstants {
 	public static final String ECMW127 = "ECMW127";
 	public static final String ECMW128 = "ECMW128";
 	public static final String ECMW129 = "ECMW129";
-
+	public static final String ECMW130 = "ECMW130";
 }

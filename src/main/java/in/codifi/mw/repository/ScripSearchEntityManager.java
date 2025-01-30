@@ -255,7 +255,7 @@ public class ScripSearchEntityManager {
 
 			String currentPage = StringUtil.isNullOrEmpty(reqModel.getCurrentPage().trim()) ? "1"
 					: reqModel.getCurrentPage().trim();
-			String pageSize = StringUtil.isNullOrEmpty(reqModel.getPageSize().trim()) ? "50"
+			String pageSize = StringUtil.isNullOrEmpty(reqModel.getPageSize().trim()) ? "500"
 					: reqModel.getPageSize().trim();
 			int offset = (Integer.parseInt(currentPage) - 1) * Integer.parseInt(pageSize);
 			String symbol = reqModel.getSearchText().trim();

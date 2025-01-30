@@ -602,7 +602,7 @@ public class MarketWatchDAO {
 		ResultSet rSet = null;
 		try {
 			conn = dataSource.getConnection();
-			String query = "SELECT id,symbol from tbl_market_watch_scrips  WHERE mw_id = ? and user_id = ? and token = ? and exch = ?";
+			String query = "SELECT id,formatted_ins_name from tbl_market_watch_scrips  WHERE mw_id = ? and user_id = ? and token = ? and exch = ?";
 			pStmt = conn.prepareStatement(query);
 			int paramPos = 1;
 			pStmt.setInt(paramPos++, pDto.getMwId());
@@ -619,7 +619,7 @@ public class MarketWatchDAO {
 			rSet = pStmt.executeQuery();
 			if (rSet != null) {
 				while (rSet.next()) {
-					response = rSet.getString("symbol");
+					response = rSet.getString("formatted_ins_name");
 					System.out.println(response);
 				}
 			}

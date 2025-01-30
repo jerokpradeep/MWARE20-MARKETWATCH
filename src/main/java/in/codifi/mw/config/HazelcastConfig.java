@@ -64,7 +64,7 @@ public class HazelcastConfig {
 	private Map<String, List<ScripSearchResp>> loadedSearchData = getHz().getMap("loadedSearchData");
 	private Map<String, ScripSearchResp> indexDetails = getHz().getMap("indexDetails");
 	
-	private Map<String, List<PromptModel>> promptMaster = getHz().getMap("promptMaster");
+	private Map<String, List<PromptModel>> promptMasterv1 = getHz().getMap("promptMasterv1");
 	private Map<String, List<RecentlyViewedModel>> recentlyViewed = getHz().getMap("recentlyViewed");
 	private Map<String, UnderlyingModel> underlyingScript = getHz().getMap("underlyingScript");
 	

@@ -11,7 +11,7 @@ import lombok.Setter;
 public class SpotData {
 
 	@JsonProperty("ltp")
-	private Integer ltp;
+	private double ltp;
 	@JsonProperty("token")
 	private String token;
 	@JsonProperty("tradingSymbol")

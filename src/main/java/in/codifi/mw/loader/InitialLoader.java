@@ -33,5 +33,6 @@ public class InitialLoader extends HttpServlet {
 		contractService.loadUnderlyingScrips();
 		Log.info("Started to loading contract master");
 		contractService.loadContractMaster();
+		contractService.loadPromptData();
 	}
 }
