@@ -317,6 +317,7 @@ public class ScripSearchEntityManager {
 			String questionCount = "";
 			String whereClause = "";
 			String caseCondition = "";
+			String tempCaseClause1 = "";
 			if (exch != null && exch.length > 0) {
 				List<String> exchList = new ArrayList<String>(Arrays.asList(exch));
 				exch = exchList.toArray(new String[0]);
@@ -326,12 +327,15 @@ public class ScripSearchEntityManager {
 				}
 				questionCount = ques.substring(0, ques.length() - 1);
 			}
+			String sqlQuery4 = "";
 
 			String sqlQuery1 = "SELECT exch, exchange_segment, group_name, symbol, token, instrument_type, formatted_ins_name,week_tag,company_name,expiry_date,option_type,isin FROM tbl_global_contract_master_details ";
-			String sqlQuery2 = "CASE when symbol= 'NIFTY 50' THEN 1 WHEN trading_symbol LIKE 'BANK NIFTY INDEX' THEN 2 WHEN (formatted_ins_name LIKE 'NIFTY%' OR company_name LIKE 'NIFTY%' OR symbol= 'NIFTY%' ) and exchange_segment ='nse_idx' then 3 WHEN (formatted_ins_name LIKE 'BANK NIFTY%' OR company_name LIKE 'BANK NIFTY%' OR symbol= 'BANK NIFTY%' )  then 4 WHEN(formatted_ins_name LIKE 'SENSEXETF%' OR company_name LIKE 'SENSEXETF%' OR symbol = 'SENSEXETF%') THEN 5 ELSE 6 END ,";
-			String sqlQuery3 = " sort_order_1, sort_order_2, expiry_date, symbol,formatted_ins_name limit " + pageSize
-					+ " OFFSET " + offset + "";
+			String sqlQuery2 = "sort_order_2,sort_order_1,"
+					+ "CASE  when symbol= 'NIFTY 50' THEN 1 WHEN trading_symbol LIKE 'BANK NIFTY INDEX' THEN 2 WHEN (formatted_ins_name LIKE 'NIFTY%' OR company_name LIKE 'NIFTY%' OR symbol= 'NIFTY%' ) and exchange_segment ='nse_idx' then 3 "
+					+ "WHEN (formatted_ins_name LIKE 'BANK NIFTY%' OR company_name LIKE 'BANK NIFTY%' OR symbol= 'BANK NIFTY%' ) THEN 4 ";
+			String sqlQuery3 = "  expiry_date, symbol,formatted_ins_name limit " + pageSize + " OFFSET " + offset + "";
 
+			String sqlQuery5 = "when isin like 'INF%' then 7 else 8 END ,";
 			/**
 			 * To Add no of question mark in where condition base of exchange. If exchange
 			 * is all no need to put in where condition
@@ -354,36 +358,55 @@ public class ScripSearchEntityManager {
 				 **/
 
 //				if (keys.length == 1 && keys[0] != null && keys[0].trim().length() < 4) {
-//					tempWhereClause = tempWhereClause + " and (symbol like '" + keys[0] + "%'  or company_name like '"
-//							+ keys[0] + "%' )";
+//					tempWhereClause = tempWhereClause + " and ( formatted_ins_name like '" + keys[0]
+//							+ "%' or formatted_ins_name like '% " + keys[0] + "%' or formatted_ins_name like '"
+//							+ keys[0] + "%'   or symbol like '" + keys[0] + "%' or company_name like '" + keys[0]
+//							+ "%' or company_name like '" + keys[0] + " %' or company_name like '% " + keys[0] + "%') ";
 //				} else {
 //					for (String tempSymbol : keys) {
 //						/** Changed to get company name in search **/
-//						tempWhereClause = tempWhereClause + " and ( instrument_name like '%" + tempSymbol
-//								+ "%' or symbol like '" + tempSymbol + "%' or company_name like '%" + tempSymbol
-//								+ "%')";
+//						tempWhereClause = tempWhereClause + " and ( formatted_ins_name like '" + tempSymbol
+//								+ "%' or formatted_ins_name like '% " + tempSymbol + "%' or formatted_ins_name like '"
+//								+ tempSymbol + "%'   or symbol like '" + tempSymbol + "%' or company_name like '"
+//								+ tempSymbol + "%' or company_name like '" + tempSymbol + " %' or company_name like '% "
+//								+ tempSymbol + "%') ";
 //					}
 //				}
 
 				if (keys.length == 1 && keys[0] != null && keys[0].trim().length() < 4) {
-					tempWhereClause = tempWhereClause + " and (symbol like '%" + keys[0] + "%'  or company_name like '%"
-							+ keys[0] + "%' )";
+					tempWhereClause = tempWhereClause + " and ( formatted_ins_name like '" + keys[0]
+							+ "%' or formatted_ins_name like '% " + keys[0] + "%' or formatted_ins_name like '"
+							+ keys[0] + "%'   or symbol like '" + keys[0] + "%' or company_name like '" + keys[0]
+							+ "%' or company_name like '" + keys[0] + " %' or company_name like'%" + keys[0] + "%') ";
 				} else {
 					for (String tempSymbol : keys) {
 						/** Changed to get company name in search **/
-						tempWhereClause = tempWhereClause + " and ( formatted_ins_name like '%" + tempSymbol
-								+ "%' or symbol like '%" + tempSymbol + "%' or company_name like '%" + tempSymbol
-								+ "%')";
+						tempWhereClause = tempWhereClause + " and ( formatted_ins_name like '" + tempSymbol
+								+ "%' or formatted_ins_name like '% " + tempSymbol + "%' or formatted_ins_name like '"
+								+ tempSymbol + "%'   or symbol like '" + tempSymbol + "%' or company_name like '"
+								+ tempSymbol + "%' or company_name like '" + tempSymbol + " %' or company_name like'%"
+								+ tempSymbol + "%') ";
 					}
 				}
 
-				String tempQuery = "AND (" + "'" + keys[0] + "'"
-						+ " != 'ACC' OR ( symbol != 'CREDITACC' AND symbol != 'GOLDENTOBC'))";
+				if (keys.length == 1 && keys[0] != null && keys[0].trim().length() < 4) {
+					sqlQuery4 = "when symbol like '" + keys[0] + "%' then 5 when formatted_ins_name like '" + keys[0]
+							+ "%' or company_name like '" + keys[0] + "%' then 6  ";
 
-				caseCondition = caseCondition + tempWhereClause + tempQuery;
+				} else {
+					for (String tempSymbol : keys) {
+						/** Changed to get company name in search **/
+						sqlQuery4 = "when symbol like '" + tempSymbol + "%' then 5 when formatted_ins_name like '"
+								+ tempSymbol + "%' or company_name like '" + tempSymbol + "%' then 6  ";
+					}
+				}
+
+				caseCondition = caseCondition + tempWhereClause;
+				tempCaseClause1 = sqlQuery4;
 			}
 
-			stringQuery = sqlQuery1 + whereClause + caseCondition + " ORDER BY  " + sqlQuery2 + sqlQuery3;
+			stringQuery = sqlQuery1 + whereClause + caseCondition + " ORDER BY  " + sqlQuery2 + tempCaseClause1
+					+ sqlQuery5 + sqlQuery3;
 
 			System.out.println("<<<<Query>>>>>" + stringQuery);
 

@@ -42,4 +42,9 @@ public interface ContractServiceSpecs {
 	 * @return
 	 */
 	RestResponse<ResponseModel> reloadContractMasterFileV1(int daysOffset);
+
+	/**
+	 * @return
+	 */
+	RestResponse<ResponseModel> manualInsertScriptFile();
 }

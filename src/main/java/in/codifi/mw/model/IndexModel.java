@@ -1,6 +1,7 @@
 package in.codifi.mw.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,7 +12,7 @@ import lombok.Setter;
 @Setter
 public class IndexModel implements Serializable {
 	@JsonProperty("closingIndex")
-	private String closingIndex;
+	private BigDecimal closingIndex;
 	@JsonProperty("exchange")
 	private String exchange;
 	@JsonProperty("segment")

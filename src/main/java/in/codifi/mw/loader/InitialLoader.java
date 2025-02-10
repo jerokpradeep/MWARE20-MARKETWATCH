@@ -25,6 +25,8 @@ public class InitialLoader extends HttpServlet {
 //		sevice.loadContractMaster();
 //		cacheservice.loadUserMWData();
 //		System.out.println(" Market watch data pre-Lodings are ended");
+		contractService.loadContractMasterCommodity();
+		
 		contractService.loadIsinByToken();
 		System.out.println(" Predefined Market watch data pre-Lodings are started");
 		MwCacheController.getMasterPredefinedMwList().clear();
@@ -33,5 +35,8 @@ public class InitialLoader extends HttpServlet {
 		System.out.println("Get Mw List UserId clear");
 		contractService.loadUnderlyingScrips();
 		contractService.loadPromptData();
+		contractService.loadPromptInfoData();
+		System.out.println("InitialLoader DONE");
+		contractService.scripInfoData();
 	}
 }

@@ -15,7 +15,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ContractMasterModel implements Serializable{
+public class ContractMasterModelCommodity implements Serializable{
 
 	/**
 	 * 
@@ -43,4 +43,16 @@ public class ContractMasterModel implements Serializable{
 	private String weekTag;
 	private String companyName;
 	private String optionFlag;
+	private String minPrice;
+	private String maxPrice;
+	private String priceUnit;
+	private String qtyunit;
+	private String deliveryUnit;
+	private String contractStartDate;
+	private String tenderStartDate;
+	private String tenderEndDate;
+	private String deliveryStartDate;
+	private String deliveryEndDate;
+	private String lastTradingDate;
+
 }

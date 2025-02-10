@@ -89,7 +89,7 @@ public class AppConstants {
 	public static final String PREDEFINED_MW = "PreDefinedMWList";
 	public static final String HOLDINGS_MW = "HoldingsMWList";
 	public static final String POSITION_MW = "PostionsMWList";
-	
+
 	public static final String TEMP_USER_ID = "CD-ADMIN";
 
 	public static final String MODULE_MW = "Marketwatch";
@@ -122,17 +122,17 @@ public class AppConstants {
 
 	public static final String HOLDING_MW_ID = "101";
 	public static final String HOLDING_MW_NAME = "MY STOCKS";
-	
+
 	public static final String POSITION_MW_ID = "102";
 	public static final String POSITION_MW_NAME = "Positions";
 	public static final String RECENTLY_SEARCHED_MW_NAME = "Recently Viewed";
-	
+
 	public static final String RECENTLY_SEARCH_DELETED = "Recently viewed Scrips should not be deleted.";
 	public static final String RECENTLY_SEARCH_RENAME = "Recently search Scrips should not be rename.";
 	public static final String RECENTLY_SEARCH_SORTING = "Recently search Scrips should not be sorting order";
 	public static final String UNDERLYING_LOAD_SUCESS = "Underlying loaded sucessfully";
 	public static final String UNDERLYING_LOAD_FAILED = "Failed to load Underlying";
-	
+
 	public static final String CONTRACT_LOAD_SUCESS = "Contract loaded sucessfully";
 	public static final String CONTRACT_LOAD_FAILED = "Failed to load contract";
 	public static final String CONTRACT_FILE_NMAE = "tbl_global_contract_master_details_";
@@ -143,5 +143,11 @@ public class AppConstants {
 	public static final String ASM_GSM_LOAD_SUCESS = "ASM_GSM loaded sucessfully";
 	public static final String ASM_GSM_LOAD_FAILED = "Failed to load ASM_GSM file";
 	public static final String ASMGSM_FILE_NMAE = "tbl_asm_gsm_";
+	public static final String USER_ID = "IIFL0020";
+	public static final String IISIN = "INE549A01026";
+	public static final String CALLAUCTION = "	In the event where maximum of buy price entered by a client (on PAN basis) is equal to or higher than the minimum sell price entered by that client and if the same results into trades, a penalty shall be imposed on such trades.The penalty shall be calculated and charged by the exchange";
+	public static final String T2T = "This is a trade to trade scrip. Any transaction will be considered as delivery transaction";
+	public static final String FAOSETTLEMENT = "As per SEBI Circular dated 11/04/2018 (Circular Reference number - SEBI/HO/MRD/DP/CIR/P/2018/67), On the day of Contract Expiry this contract is Physical settled.";
+
 
 }

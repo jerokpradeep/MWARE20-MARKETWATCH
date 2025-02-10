@@ -18,5 +18,7 @@ public class SpotData {
 	private String tradingSymbol;
 	@JsonProperty("nsebseToken")
 	private String nsebseToken;
+	@JsonProperty("nsebseTickSize")
+	private String nsebseTickSize;
 
 }

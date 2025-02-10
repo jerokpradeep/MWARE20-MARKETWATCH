@@ -1,5 +1,7 @@
 package in.codifi.mw.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.cache.model.ContractMasterModelCommodity;
 import in.codifi.mw.cache.HazelCacheController;
 import in.codifi.mw.cache.MwCacheController;
 import in.codifi.mw.config.ApplicationProperties;
@@ -51,6 +54,7 @@ import in.codifi.mw.model.ProductLeverage;
 import in.codifi.mw.model.Prompt;
 import in.codifi.mw.model.PromptModel;
 import in.codifi.mw.model.ResponseModel;
+import in.codifi.mw.model.ScripMasterModel;
 import in.codifi.mw.model.SecurityInfoReqModel;
 import in.codifi.mw.model.SecurityInfoRespModel;
 import in.codifi.mw.model.SpotData;
@@ -1302,27 +1306,68 @@ public class MarketWatchService implements IMarketWatchService {
 	 * 
 	 */
 	@Override
-	public RestResponse<ResponseModel> getcommodityContarct(MwCommodityContarctModel pDto) {
-		MwCommodityContarctModel response = new MwCommodityContarctModel();
-
-		/*
-		 * TODO CommodityContarct Set to ContractMaster data
-		 */
-		response.setPriceRange("55440.00 - 60060.00");
-		response.setPriceUnit("CANDY");
-		response.setQtyUnit("1 CANDY");
-		response.setDeliveryUnit("CANDY");
-		response.setTickSize("1000.0");
-		response.setLotSize("48.0");
-		response.setMaxOrderValue("0");
-		response.setContractStartDate("Apr 17 2024 12:00AM");
-		response.setTenderStartDate("Sep 24 2024 12:00AM");
-		response.setTenderEndDate("Sep 30 2024 11:59PM");
-		response.setDelievryStartDate("Sep 24 2024 11:59PM");
-		response.setDelievryEndDate("Oct 3 2024 11:59PM");
-		response.setLastTradingDate("Sep 30 2024 4:59PM");
-
-		return prepareResponse.prepareSuccessResponseObject(response);
+	public RestResponse<ResponseModel> getcommodityContarct(MwCommodityContarctModel model) {
+//		MwCommodityContarctModel response = new MwCommodityContarctModel();
+	
+		try {
+		
+			String codifiExchange = "";
+			if (properties.isExchfull()) {
+				String exchangeSegment = commonUtils
+						.getExchangeSegmentNameIIFL(model.getExchange().trim().toUpperCase());
+				codifiExchange = commonUtils.getExchangeName(exchangeSegment.toUpperCase().trim());
+			} else {
+				codifiExchange = model.getExchange().trim().toUpperCase();
+			}
+			if (HazelcastConfig.getInstance().getContractMasterCommodity()
+					.get(codifiExchange + "_" + model.getToken().trim()) != null) {
+				ContractMasterModelCommodity masterData = HazelcastConfig.getInstance().getContractMasterCommodity()
+						.get(codifiExchange + "_" + model.getToken().trim());
+				MwCommodityContarctModel response = new MwCommodityContarctModel();
+				response.setPriceRange(masterData.getMinPrice() +"-"+ masterData.getMaxPrice());
+				response.setPriceUnit(masterData.getPriceUnit() == null ? "" : masterData.getPriceUnit());
+				response.setQtyUnit(masterData.getQtyunit() == null ? "" : masterData.getQtyunit());
+				response.setDeliveryUnit(masterData.getDeliveryUnit() == null ? "" : masterData.getDeliveryUnit());
+				response.setTickSize(masterData.getTickSize() == null ? "" : masterData.getTickSize());
+				response.setLotSize(masterData.getLotSize() == null ? "" : masterData.getLotSize());
+				response.setMaxOrderValue(masterData.getQtyunit() == null ? "" : masterData.getQtyunit());
+				response.setContractStartDate(masterData.getContractStartDate() == null ? "" : masterData.getContractStartDate());
+				response.setTenderStartDate(masterData.getTenderStartDate() == null ? "" : masterData.getTenderStartDate());
+				response.setTenderEndDate(masterData.getTenderEndDate() == null ? "" : masterData.getTenderEndDate());
+				response.setDelievryStartDate(masterData.getDeliveryStartDate() == null ? "" : masterData.getDeliveryStartDate());
+				response.setDelievryEndDate(masterData.getDeliveryEndDate() == null ? "" : masterData.getDeliveryEndDate());
+				response.setLastTradingDate(masterData.getLastTradingDate() == null ? "" : masterData.getLastTradingDate());
+				
+				return prepareResponse.prepareSuccessResponseObject(response);
+			}
+			
+		} catch (Exception e) {
+			Log.error(e.getMessage());
+			e.printStackTrace();
+		}
+		return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW105, AppConstants.FAILED_STATUS);
+		
+		
+//		MwCommodityContarctModel response = new MwCommodityContarctModel();
+//
+//		/*
+//		 * TODO CommodityContarct Set to ContractMaster data
+//		 */
+//		response.setPriceRange("55440.00 - 60060.00");
+//		response.setPriceUnit("CANDY");
+//		response.setQtyUnit("1 CANDY");
+//		response.setDeliveryUnit("CANDY");
+//		response.setTickSize("1000.0");
+//		response.setLotSize("48.0");
+//		response.setMaxOrderValue("0");
+//		response.setContractStartDate("Apr 17 2024 12:00AM");
+//		response.setTenderStartDate("Sep 24 2024 12:00AM");
+//		response.setTenderEndDate("Sep 30 2024 11:59PM");
+//		response.setDelievryStartDate("Sep 24 2024 11:59PM");
+//		response.setDelievryEndDate("Oct 3 2024 11:59PM");
+//		response.setLastTradingDate("Sep 30 2024 4:59PM");
+//
+//		return prepareResponse.prepareSuccessResponseObject(response);
 	}
 
 	/**
@@ -1356,7 +1401,7 @@ public class MarketWatchService implements IMarketWatchService {
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW003,
 						ErrorMessageConstants.INVALID_EXCHANGE_SEGMENT);
 			}
-			if (!commonUtils.checkThisIsTheNumber(model.getToken().trim())) {
+			if (!commonUtils.checkTokenThisIsTheNumber(model.getToken().trim())) {
 				return prepareResponse.prepareMWFailedResponse(ErrorCodeConstants.ECMW107, AppConstants.INVALID_TOKEN);
 			}
 
@@ -1375,8 +1420,10 @@ public class MarketWatchService implements IMarketWatchService {
 						.get(codifiExchange + "_" + model.getToken().trim());
 				SecurityInfoRespModel infoResult = new SecurityInfoRespModel();
 				String exchangeIifl = commonUtils.getExchangeNameIIFL(masterData.getExch());
-				infoResult.setIsin(StringUtil.isNullOrEmpty(codifiExchange) ? "" : masterData.getIsin());
 
+//				infoResult.setIsin(StringUtil.isNullOrEmpty(codifiExchange) ? "" : masterData.getIsin());
+
+				infoResult.setIsin(masterData.getIsin() == null ? "" : masterData.getIsin());
 				if (properties.isExchfull()) {
 					infoResult.setExchange(exchangeIifl);
 				} else {
@@ -1388,17 +1435,23 @@ public class MarketWatchService implements IMarketWatchService {
 				infoResult.setLotSize(masterData.getLotSize());
 				infoResult.setTickSize(masterData.getTickSize());
 				infoResult.setSymbol(masterData.getSymbol());
-				infoResult.setPdc(masterData.getPdc());
-				infoResult.setInsType(masterData.getInsType());
+//				infoResult.setPdc(masterData.getPdc());
+
+				infoResult.setPdc(new BigDecimal(masterData.getPdc()).setScale(2, RoundingMode.HALF_UP));
+
+				if (codifiExchange.equalsIgnoreCase("NSE") || codifiExchange.equalsIgnoreCase("BSE")) {
+					infoResult.setInsType("");
+				} else {
+					infoResult.setInsType(masterData.getInsType() == null ? "" : masterData.getInsType());
+				}
+
 				infoResult.setExpiry(masterData.getExpiry() == null ? "" : masterData.getExpiry());
-				infoResult.setQtyLimit("");
-				infoResult.setSliceEnable("");
-//				infoResult.setSurveillance("");
+				infoResult.setQtyLimit(masterData.getFreezQty() == null ? "" : masterData.getFreezQty());
+				infoResult.setSliceEnable(masterData.getFreezQty() == null ? 0 : 1);
 
 				/** To add prompt message **/
 				if (model != null
 						&& (codifiExchange.equalsIgnoreCase("NSE") || codifiExchange.equalsIgnoreCase("BSE"))) {
-					System.out.println("INFO" + masterData.getIsin() + "_" + codifiExchange);
 					if (HazelcastConfig.getInstance().getPromptMasterv1()
 							.get(masterData.getIsin() + "_" + codifiExchange) != null
 							&& HazelcastConfig.getInstance().getPromptMasterv1()
@@ -1413,48 +1466,170 @@ public class MarketWatchService implements IMarketWatchService {
 					}
 				}
 
-				infoResult.setScripIndex(false);
-//				infoResult.setFnOAvailable(masterData.getOptionType() == "1" ? true : false);
-				if (HazelCacheController.getInstance().getUnderlyingScript().get(masterData.getSymbol()) != null) {
-					infoResult.setFnOAvailable(true);
-				} else {
-					infoResult.setFnOAvailable(false);
-				}
+//				if (masterData.getInsType().equalsIgnoreCase("INDEX")) {
+//					infoResult.setScripIndex(true);
+//				} else {
+//					infoResult.setScripIndex(false);
+//				}
+//
+//				if (HazelCacheController.getInstance().getUnderlyingScript().get(masterData.getSymbol()) != null) {
+//					infoResult.setFnOAvailable(true);
+//				} else {
+//					infoResult.setFnOAvailable(false);
+//				}
+
 				infoResult.setCompanyName(masterData.getCompanyName());
+				infoResult.setFormattedInsName(masterData.getFormattedInsName());
+				infoResult.setOptionType(masterData.getOptionType() == null ? "" : masterData.getOptionType());
+
+//				SpotData spotDataResult = new SpotData();
+//				spotDataResult.setLtp(0);
+//				spotDataResult.setToken(masterData.getToken());
+//				spotDataResult.setTradingSymbol(masterData.getTradingSymbol());
+//				if (codifiExchange.equalsIgnoreCase("NSE") || codifiExchange.equalsIgnoreCase("BSE")) {
+//					spotDataResult.setNsebseToken(masterData.getAlterToken() == null ? "" : masterData.getAlterToken());
+//					spotDataResult.setNsebseTickSize(masterData.getTickSize());
+//				} else {
+//					spotDataResult.setNsebseToken("");
+//					spotDataResult.setNsebseTickSize("");
+//				}
+
+				Boolean isIndex = false;
+				Boolean isFno = false;
 
 				SpotData spotDataResult = new SpotData();
-				spotDataResult.setLtp(Double.parseDouble(masterData.getPdc()));
-				spotDataResult.setToken(masterData.getToken());
-				spotDataResult.setTradingSymbol(masterData.getTradingSymbol());
-				spotDataResult.setNsebseToken(masterData.getAlterToken());
+				if ((codifiExchange.equalsIgnoreCase("NSE") || codifiExchange.equalsIgnoreCase("BSE"))
+						&& !masterData.getInsType().equalsIgnoreCase("INDEX")) {
+					spotDataResult.setLtp(0.00);
+					spotDataResult.setToken("");
+					spotDataResult.setTradingSymbol("");
+					spotDataResult.setNsebseToken(masterData.getAlterToken() == null ? "" : masterData.getAlterToken());
+					spotDataResult.setNsebseTickSize(masterData.getTickSize());
+					if (HazelCacheController.getInstance().getUnderlyingScript().get(masterData.getSymbol()) != null) {
+						isFno = true;
+					} else {
+						isFno = false;
+					}
+					isIndex = false;
+//					isFno = masterData.getOptionFlag().equalsIgnoreCase("1") ? true : false;
+				} else if ((codifiExchange.equalsIgnoreCase("NSE") || codifiExchange.equalsIgnoreCase("BSE"))
+						&& masterData.getInsType().equalsIgnoreCase("INDEX")) {
+					spotDataResult.setLtp(0.00);
+					spotDataResult.setToken("");
+					spotDataResult.setTradingSymbol("");
+					spotDataResult.setNsebseToken("");
+					spotDataResult.setNsebseTickSize("");
+					isIndex = true;
+//					isFno = masterData.getOptionFlag().equalsIgnoreCase("1") ? true : false;
+				} else if (codifiExchange.equalsIgnoreCase("NFO") || codifiExchange.equalsIgnoreCase("BFO")) {
+					spotDataResult.setLtp(0.00);
+					spotDataResult.setToken(masterData.getToken());
+					spotDataResult.setTradingSymbol(masterData.getTradingSymbol());
+					spotDataResult.setNsebseToken("");
+					spotDataResult.setNsebseTickSize("");
+					isIndex = true;
+					isFno = true;
+				} else if (codifiExchange.equalsIgnoreCase("BCD") || codifiExchange.equalsIgnoreCase("CDS")
+						|| codifiExchange.equalsIgnoreCase("MCX") || codifiExchange.equalsIgnoreCase("MCX")
+						|| codifiExchange.equalsIgnoreCase("NCDEXCOMM") || codifiExchange.equalsIgnoreCase("NCO")) {
+					spotDataResult.setLtp(0.00);
+					spotDataResult.setToken("");
+					spotDataResult.setTradingSymbol("");
+					spotDataResult.setNsebseToken("");
+					spotDataResult.setNsebseTickSize("");
+					isIndex = false;
+					isFno = true;
+				} else {
+					spotDataResult.setLtp(0.00);
+					spotDataResult.setToken("");
+					spotDataResult.setTradingSymbol("");
+					spotDataResult.setNsebseToken("");
+					spotDataResult.setNsebseTickSize("");
+				}
+				infoResult.setScripIndex(isIndex);
+				infoResult.setFnOAvailable(isFno);
 
 				Prompt promptResult = new Prompt();
 				JSONArray promptObj = new JSONArray();
-//				promptResult.setCategory("");
-//				promptResult.setDescription("");
-//				promptObj.add(promptResult);
 				promptObj.add(promptResult);
 
+				/** To add prompt message **/
+//				if (model != null && (codifiExchange.equalsIgnoreCase("NSE") || codifiExchange.equalsIgnoreCase("BSE"))) {
+//					if (HazelcastConfig.getInstance().getPromptMasterv2().get(masterData.getIsin() + "_" + codifiExchange) != null && HazelcastConfig.getInstance().getPromptMasterv2().get(masterData.getIsin() + "_" + codifiExchange).size() > 0) {
+//						List<Prompt> prompt = HazelcastConfig.getInstance().getPromptMasterv2().get(masterData.getIsin() + "_" + codifiExchange);
+//						if (prompt != null && prompt.size() > 0) {
+//							infoResult.setPrompt(prompt);
+//						} else {
+//							infoResult.setPrompt(new JSONArray());
+//						}
+//					} else {
+//						infoResult.setPrompt(new JSONArray());
+//					}
+//				} else {
+//					infoResult.setPrompt(new JSONArray());
+//				}
+				Set<String> validGroups = Set.of("T", "XT", "MT", "TS", "P", "Y", "Z", "ZP", "ZY", "BE", "BZ", "ST",
+						"SZ");
+
+				if (model != null
+						&& (codifiExchange.equalsIgnoreCase("NSE") || codifiExchange.equalsIgnoreCase("BSE"))) {
+					if (HazelcastConfig.getInstance().getPromptMasterv2()
+							.get(masterData.getIsin() + "_" + codifiExchange) != null
+							&& HazelcastConfig.getInstance().getPromptMasterv2()
+									.get(masterData.getIsin() + "_" + codifiExchange).size() > 0) {
+						List<Prompt> prompt = HazelcastConfig.getInstance().getPromptMasterv2()
+								.get(masterData.getIsin() + "_" + codifiExchange);
+						if (prompt != null && prompt.size() > 0) {
+							infoResult.setPrompt(prompt);
+						} else if (validGroups.contains(masterData.getGroupName())) {
+							Prompt promptResult1 = new Prompt();
+							JSONArray promptObj1 = new JSONArray();
+							promptResult1.setCategory("T2T");
+							promptResult1.setDescription(AppConstants.T2T);
+							promptObj1.add(promptResult1);
+							infoResult.setPrompt(promptObj1);
+						}
+					} else {
+						infoResult.setPrompt(new JSONArray());
+					}
+				} else {
+					infoResult.setPrompt(new JSONArray());
+				}
+
 				ProductLeverage productLeverageResult = new ProductLeverage();
-				productLeverageResult.setDelivery("");
-				productLeverageResult.setIntraday("");
-				productLeverageResult.setBnpl("");
+
+				String badgeValue = "0";
+
+				if (HazelcastConfig.getInstance().getScripMaster().get(masterData.getIsin() + "_"
+						+ masterData.getSymbol() + "_" + masterData.getGroupName()) != null) {
+					ScripMasterModel scripMaster = HazelcastConfig.getInstance().getScripMaster()
+							.get(masterData.getIsin() + "_" + masterData.getSymbol() + "_" + masterData.getGroupName());
+					productLeverageResult.setDelivery(scripMaster.getDelivery_buy_margin());
+					productLeverageResult.setIntraday(scripMaster.getMis_buy_margin());
+					productLeverageResult.setBnpl(scripMaster.getMtf_buy_margin());
+					badgeValue = scripMaster.getScrip_bnpl_enabled();
+				} else {
+					productLeverageResult.setDelivery("");
+					productLeverageResult.setIntraday("");
+					productLeverageResult.setBnpl("");
+				}
 
 				Badge badge = new Badge();
 				badge.setEvent(false);
-				badge.setBnpl("");
+				badge.setBnpl(badgeValue);
 				badge.setIdeas("");
-				badge.setHoldingqty(0);
+				if (AppConstants.USER_ID.equalsIgnoreCase(info.getUserId())
+						&& AppConstants.IISIN.equalsIgnoreCase(masterData.getIsin())) {
+					badge.setHoldingqty(50);
+				} else {
+					badge.setHoldingqty(0);
+				}
 
 				infoResult.setSpotData(spotDataResult);
-//				infoResult.setPrompt(promptObj);
-				infoResult.setPrompt(new JSONArray());
 				infoResult.setProductLeverage(productLeverageResult);
 				infoResult.setBadge(badge);
-//				infoResult.setScreeners(List.of("topGainer", "52wk High", "Volume shocker"));
 				infoResult.setScreeners(new JSONArray());
 
-//				return prepareResponse.prepareSuccessResponseObject(infoResult);
 				return prepareResponse.prepareSuccessResponseWithMessage(infoResult, AppConstants.SUCCESS_STATUS,
 						false);
 			} else {

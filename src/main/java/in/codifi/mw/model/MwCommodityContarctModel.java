@@ -18,7 +18,7 @@ public class MwCommodityContarctModel {
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	public String exchange;
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-	public String segmemt;
+	public String segment;
 	public String priceRange;
 	public String priceUnit;
 	public String QtyUnit;

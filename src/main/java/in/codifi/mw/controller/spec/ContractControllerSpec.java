@@ -46,4 +46,13 @@ public interface ContractControllerSpec {
 	@Consumes(MediaType.APPLICATION_JSON)
 	RestResponse<ResponseModel> reloadContractMasterFileV1(LoaderReqModel model);
 
+	/**
+	 * @return
+	 */
+	@Path("/load/scripdata")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	RestResponse<ResponseModel> manualInsertScriptFile();
+
 }

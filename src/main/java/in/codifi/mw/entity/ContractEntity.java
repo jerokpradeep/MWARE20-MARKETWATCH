@@ -102,4 +102,55 @@ public class ContractEntity implements Serializable {
 
 	@Column(name = "SORT_ORDER_3")
 	private int sortOrder3;
+	
+	@Column(name = "OPTION_FLAG")
+	private String option_flag;
+
+	@Column(name = "MIN_PRICE")
+	private String min_price; 
+
+	@Column(name = "MAX_PRICE")
+	private String max_price; 
+
+	@Column(name = "PRICE_UNIT")
+	private String price_unit; 
+
+	@Column(name = "QTY_UNIT")
+	private String qty_unit;
+
+	@Column(name = "CONTRACT_STARTDATE") 
+	private String contract_startdate; 
+
+	@Column(name = "TENDER_STARTDATE")
+	private String tender_startdate; 
+
+	@Column(name = "TENDER_ENDDATE")
+	private String tender_enddate;
+
+	@Column(name = "DELIVERY_STARTDATE") 
+	private String delivery_startdate;
+
+	@Column(name = "DELIVERY_ENDDATE")
+	private String delivery_enddate;
+
+	@Column(name = "LAST_TRADINGDATE")
+	private String last_tradingdate; 
+
+	@Column(name = "PHYSICAL_QTY")
+	private String physical_qty;
+
+	@Column(name = "DISPLAY_NAME")
+	private String display_name;
+
+	@Column(name = "DECIMAL_PRECISION")
+	private String decimal_precision;
+
+	@Column(name = "PNL_MULTIPLIER")
+	private String Pnl_multiplier; 
+
+	@Column(name = "MULTIPLIER")
+	private String multiplier;
+
+	@Column(name = "DELIVERYUNIT")
+	private String deliveryunit;
 }

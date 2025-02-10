@@ -58,6 +58,18 @@ public class CommonUtils {
 		}
 		return Pattern.matches(TOKEN_ALLOWED_CHARACTERS_REGEX, token);
 	}
+	
+	public boolean checkTokenThisIsTheNumber(String token) {
+		int TOKEN_MAX_LENGTH = 15;
+		String TOKEN_ALLOWED_CHARACTERS_REGEX = "^\\d+$";
+		if (StringUtil.isNullOrEmpty(token)) {
+			return false;
+		}
+		if (token.length() > TOKEN_MAX_LENGTH) {
+			return false;
+		}
+		return Pattern.matches(TOKEN_ALLOWED_CHARACTERS_REGEX, token);
+	}
 
 	public boolean validateToken(String token) {
 		int TOKEN_MAX_LENGTH = 6;

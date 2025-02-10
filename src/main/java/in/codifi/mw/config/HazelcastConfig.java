@@ -12,10 +12,13 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
 
 import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.cache.model.ContractMasterModelCommodity;
 import in.codifi.cache.model.UnderlyingModel;
 import in.codifi.mw.model.PnlLotModel;
+import in.codifi.mw.model.Prompt;
 import in.codifi.mw.model.PromptModel;
 import in.codifi.mw.model.RecentlyViewedModel;
+import in.codifi.mw.model.ScripMasterModel;
 import in.codifi.mw.model.ScripSearchResp;
 import in.codifi.mw.model.VendorDTO;
 import lombok.Getter;
@@ -68,6 +71,11 @@ public class HazelcastConfig {
 	private Map<String, List<RecentlyViewedModel>> recentlyViewed = getHz().getMap("recentlyViewed");
 	private Map<String, UnderlyingModel> underlyingScript = getHz().getMap("underlyingScript");
 
+	private Map<String, List<Prompt>> promptMasterv2 = getHz().getMap("promptMasterv2");
+	
+	private Map<String, ScripMasterModel> scripMaster = getHz().getMap("scripMaster");
+
+	private Map<String, ContractMasterModelCommodity> contractMasterCommodity = getHz().getMap("contractMasterCommodity");
 
 
 }

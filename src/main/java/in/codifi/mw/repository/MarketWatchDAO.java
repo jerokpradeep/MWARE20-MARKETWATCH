@@ -1,6 +1,8 @@
 
 package in.codifi.mw.repository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -449,7 +451,7 @@ public class MarketWatchDAO {
 		try {
 			conn = dataSource.getConnection();
 			pStmt = conn.prepareStatement(
-					"UPDATE tbl_market_watch_list SET sorting_order = ? where mw_id = ? and user_id = ? and id = ?");
+					"UPDATE tbl_market_watch_scrips SET sorting_order = ? where mw_id = ? and user_id = ? and id = ?");
 			for (MarketWatchScripDetailsDTO dto : scripsDto) {
 				int paramPos = 1;
 				pStmt.setInt(paramPos++, dto.getSortingOrder());
@@ -692,13 +694,14 @@ public class MarketWatchDAO {
 		ResultSet rSet = null;
 		try {
 			conn = entityManager.getConnection();
-			String query = "SELECT pdc,exch,exchange_segment,symbol,token FROM tbl_global_contract_master_details where instrument_type ='INDEX' ";
+			String query = "SELECT pdc,exch,exchange_segment,symbol,token FROM tbl_global_contract_master_details where instrument_type ='INDEX' and active_status = 1";
 			pStmt = conn.prepareStatement(query);
 			rSet = pStmt.executeQuery();
 			if (rSet != null) {
 				while (rSet.next()) {
 					IndexModel model = new IndexModel();
-					model.setClosingIndex(rSet.getString("pdc"));
+//					model.setClosingIndex(rSet.getString("pdc"));
+					model.setClosingIndex(new BigDecimal(rSet.getString("pdc")).setScale(2, RoundingMode.HALF_UP));
 					if (properties.isExchfull()) {
 						String exchangeIifl = commonUtils.getExchangeNameIIFL(rSet.getString("exch"));
 						model.setExchange(exchangeIifl);
@@ -710,7 +713,7 @@ public class MarketWatchDAO {
 					}
 
 					model.setIndexName(rSet.getString("symbol"));
-					model.setIndexValue("");
+					model.setIndexValue("0");
 					model.setIndiceID(rSet.getString("token"));
 					response.add(model);
 				}

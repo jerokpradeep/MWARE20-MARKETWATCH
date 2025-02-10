@@ -20,22 +20,27 @@ import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.Session;
 
+//import in.codifi.admin.model.response.GenericResponse;
 import in.codifi.cache.model.ContractMasterModel;
+import in.codifi.cache.model.ContractMasterModelCommodity;
 import in.codifi.cache.model.UnderlyingModel;
 import in.codifi.mw.config.ApplicationProperties;
 import in.codifi.mw.config.HazelcastConfig;
 import in.codifi.mw.entity.ContractEntity;
+import in.codifi.mw.entity.ScripMasterEntity;
 import in.codifi.mw.entity.primary.PnlLotEntity;
 import in.codifi.mw.entity.primary.PromptEntity;
 import in.codifi.mw.entity.primary.UnderlyingEntity;
 import in.codifi.mw.model.PnlLotModel;
 import in.codifi.mw.model.PromptModel;
 import in.codifi.mw.model.ResponseModel;
+import in.codifi.mw.model.ScripMasterModel;
 import in.codifi.mw.repository.ContractEntityManager;
 import in.codifi.mw.repository.ContractRepository;
 import in.codifi.mw.repository.PnlLotRepository;
 import in.codifi.mw.repository.PromptDao;
 import in.codifi.mw.repository.PromptRepository;
+import in.codifi.mw.repository.ScripMasterRepository;
 import in.codifi.mw.repository.ScripsDao;
 import in.codifi.mw.repository.UnderlyingRepository;
 import in.codifi.mw.service.spec.ContractServiceSpecs;
@@ -49,6 +54,10 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
@@ -80,6 +89,10 @@ public class ContractService implements ContractServiceSpecs {
 
 	@Inject
 	PnlLotRepository pnlLotRepository;
+	
+	@Inject
+	ScripMasterRepository scripMasterRepository;
+	
 	/**
 	 * 
 	 */
@@ -595,6 +608,173 @@ public class ContractService implements ContractServiceSpecs {
 			}
 			HazelcastConfig.getInstance().getPnlLot().put(AppConstants.PNL_LOT, pnlLotModels);
 			System.out.println("Pnl Lot loaded sucessFully");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return prepareResponse.prepareFailedResponse(AppConstants.CONTRACT_LOAD_FAILED);
+		}
+		return prepareResponse.prepareSuccessMessage(AppConstants.CONTRACT_LOAD_SUCESS);
+		
+	}
+
+	/**
+	 * 
+	 */
+	public void loadPromptInfoData() {
+		promptDao.loadPromptInfoData();
+	}
+
+	
+	/***
+	 * 
+	 */
+	@Override
+	public RestResponse<ResponseModel> manualInsertScriptFile() {
+		ResponseModel response = new ResponseModel();
+		 // Database connection details
+       String jdbcUrl = "jdbc:mysql://localhost:3306/market_watch?allowLoadLocalInfile=true";
+       String username = "root";
+       String password = "vicky";
+
+       // Path to your input file
+       
+       String filePath = "C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/HOLDING_ALL_20250102170345877.csv";
+//       String filePath = "/opt/files/HOLDING_ALL_20250102170345877.csv";
+
+       // SQL query for LOAD DATA INFILE with IGNORE
+       String loadQuery = "LOAD DATA INFILE '" + filePath + "' " +
+                          "INTO TABLE tbl_holdings_data " +
+                          "FIELDS TERMINATED BY ',' " +
+                          "ENCLOSED BY '\"' " +
+                          "LINES TERMINATED BY '\\n' " +
+                          "IGNORE 2 LINES " +
+                          "(user_id, isin, qty, collateral_qty, btst_qty, btst_coll_qty, actual_price, close_price, product, is_edis)";
+
+       try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
+            Statement statement = connection.createStatement()) {
+       	System.out.println("Start>>>"+System.currentTimeMillis());
+           // Execute the LOAD DATA INFILE command
+           int rowsInserted = statement.executeUpdate(loadQuery);
+       	System.out.println("End>>>"+System.currentTimeMillis());
+           System.out.println("Rows inserted: " + rowsInserted);
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+		return null;
+	}
+
+	/**
+	 * @return 
+	 * 
+	 */
+	public RestResponse<ResponseModel> scripInfoData() {
+		try {
+			List<ScripMasterEntity> contractList = new ArrayList<>();
+			contractList = scripMasterRepository.findAll();
+			if (contractList.size() > 0)
+				HazelcastConfig.getInstance().getScripMaster().clear();
+			for (ScripMasterEntity contractEntity : contractList) {
+				ScripMasterModel result = new ScripMasterModel();
+
+				result.setExchange_type(contractEntity.getExchange_type());
+				result.setExch_symbol(contractEntity.getExch_symbol());
+				result.setTrading_symbol(contractEntity.getTrading_symbol());
+				result.setSeries(contractEntity.getSeries());
+				result.setIsin(contractEntity.getIsin());
+				result.setInstrument_type(contractEntity.getInstrument_type());
+				result.setStrike_price(contractEntity.getStrike_price());
+				result.setOption_type(contractEntity.getOption_type());
+				result.setExpiry(contractEntity.getExpiry());
+				result.setScrip_bnpl_enabled(contractEntity.getScrip_bnpl_enabled());
+				result.setSlice_flag(contractEntity.getSlice_flag());
+				result.setDelivery_buy_margin(contractEntity.getDelivery_buy_margin());
+				result.setDelivery_sell_margin(contractEntity.getDelivery_sell_margin());
+				result.setMis_buy_margin(contractEntity.getMis_buy_margin());
+				result.setMis_sell_margin(contractEntity.getMis_sell_margin());
+				result.setMtf_buy_margin(contractEntity.getMtf_buy_margin());
+				result.setMtf_sell_margin(contractEntity.getMtf_sell_margin());
+				result.setBoco_buy_margin(contractEntity.getBoco_buy_margin());
+				result.setBoco_sell_margin(contractEntity.getBoco_sell_margin());
+
+				System.out.println(contractEntity.getExch_symbol());
+				if(contractEntity.getExch_symbol() != null) {
+					String key = contractEntity.getIsin()+"_"+ contractEntity.getExch_symbol() +"_"+contractEntity.getSeries();
+					HazelcastConfig.getInstance().getScripMaster().put(key, result);
+				}
+				
+			}
+			System.out.println("Scrips Master Loaded SucessFully");
+			System.out.println("Full Size " + HazelcastConfig.getInstance().getScripMaster().size());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return prepareResponse.prepareFailedResponse(AppConstants.UNDERLYING_LOAD_FAILED);
+		}
+		return prepareResponse.prepareSuccessMessage(AppConstants.UNDERLYING_LOAD_SUCESS);
+		
+	}
+
+	/**
+	 * @return 
+	 * 
+	 */
+	public RestResponse<ResponseModel> loadContractMasterCommodity() {
+		try {
+			List<ContractEntity> contractList = new ArrayList<>();
+			contractList = contractRepository.findAll();
+			if (contractList.size() > 0)
+				HazelcastConfig.getInstance().getContractMasterCommodity().clear();
+			for (ContractEntity contractEntity : contractList) {
+				ContractMasterModelCommodity result = new ContractMasterModelCommodity();
+
+				result.setExch(contractEntity.getExch());
+				result.setSegment(contractEntity.getSegment());
+				result.setSymbol(contractEntity.getSymbol());
+				result.setIsin(contractEntity.getIsin());
+				result.setFormattedInsName(contractEntity.getFormattedInsName());
+				result.setToken(contractEntity.getToken());
+				result.setTradingSymbol(contractEntity.getTradingSymbol());
+				result.setGroupName(contractEntity.getGroupName());
+				result.setInsType(contractEntity.getInsType());
+				result.setOptionType(contractEntity.getOptionType());
+				result.setStrikePrice(contractEntity.getStrikePrice());
+				result.setExpiry(contractEntity.getExpiryDate());
+				result.setLotSize(contractEntity.getLotSize());
+				result.setTickSize(contractEntity.getTickSize());
+				result.setPdc(contractEntity.getPdc());
+				result.setWeekTag(contractEntity.getWeekTag());
+				result.setFreezQty(contractEntity.getFreezeQty());
+				result.setAlterToken(contractEntity.getAlterToken());
+				result.setCompanyName(contractEntity.getCompanyName());
+				result.setOptionFlag(contractEntity.getOption_flag());
+				result.setMinPrice(contractEntity.getMin_price());
+				result.setMaxPrice(contractEntity.getMax_price());
+				result.setPriceUnit(contractEntity.getPrice_unit());
+				result.setQtyunit(contractEntity.getQty_unit());
+				result.setDeliveryUnit(contractEntity.getDeliveryunit());
+				result.setContractStartDate(contractEntity.getContract_startdate());
+				result.setTenderStartDate(contractEntity.getTender_startdate());
+				result.setTenderEndDate(contractEntity.getTender_enddate());
+				result.setDeliveryStartDate(contractEntity.getDelivery_startdate());
+				result.setDeliveryEndDate(contractEntity.getDelivery_enddate());
+				result.setLastTradingDate(contractEntity.getLast_tradingdate());
+				
+				String key = contractEntity.getExch() + "_" + contractEntity.getToken();
+				HazelcastConfig.getInstance().getContractMasterCommodity().put(key, result);
+
+//				String token = contractEntity.getToken();
+//				String exch = contractEntity.getExch().toUpperCase();
+//				String tradingSymbol = contractEntity.getTradingSymbol();
+//				if (StringUtil.isNotNullOrEmpty(tradingSymbol)) {
+//					HazelcastConfig.getInstance().getTradingSymbolTokenMapKB().put(tradingSymbol.toUpperCase(),
+//							token + "_" + exch);
+//				}
+			}
+			System.out.println("Commodity Contract Loaded SucessFully");
+			System.out.println("Full Size Commodity " + HazelcastConfig.getInstance().getContractMasterCommodity().size());
+
+//			System.out.println("Trading symbol token map TR Loaded SucessFully");
+//			System.out.println("Trading symbol token map TR Full Size "
+//					+ HazelcastConfig.getInstance().getTradingSymbolTokenMapKB().size());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return prepareResponse.prepareFailedResponse(AppConstants.CONTRACT_LOAD_FAILED);

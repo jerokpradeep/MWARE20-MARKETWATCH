@@ -47,4 +47,9 @@ public class ContractController implements ContractControllerSpec {
 		return service.reloadContractMasterFileV1(model.getDaysOffset());
 	}
 	
+	
+	@Override
+	public RestResponse<ResponseModel> manualInsertScriptFile() {
+		return service.manualInsertScriptFile();
+	}
 }

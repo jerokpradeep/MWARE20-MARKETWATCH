@@ -1,5 +1,6 @@
 package in.codifi.mw.model;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,7 +27,7 @@ public class SecurityInfoRespModel {
 	@JsonProperty("symbol")
 	private String symbol;
 	@JsonProperty("pdc")
-	private String pdc;
+	private BigDecimal pdc;
 	@JsonProperty("insType")
 	private String insType;
 	@JsonProperty("expiry")
@@ -34,7 +35,7 @@ public class SecurityInfoRespModel {
 	@JsonProperty("qtyLimit")
 	private String qtyLimit;
 	@JsonProperty("sliceEnable")
-	private String sliceEnable;
+	private int sliceEnable;
 //	@JsonProperty("surveillance")
 //	private String surveillance;
 	@JsonProperty("surveillance")
@@ -55,4 +56,10 @@ public class SecurityInfoRespModel {
 	private Badge badge;
 	@JsonProperty("screeners")
 	private List<String> screeners;
+	
+	@JsonProperty("optionType")
+	private String optionType;
+	
+	@JsonProperty("formattedInsName")
+	private String formattedInsName;
 }
